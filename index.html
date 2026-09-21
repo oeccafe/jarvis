@@ -103,7 +103,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 24px 16px 16px;
+      padding: 20px 16px 14px;
       position: relative;
     }
 
@@ -203,7 +203,7 @@
 
     /* 狀態提示橫幅 */
     .status-banner {
-      margin-top: 14px;
+      margin-top: 12px;
       padding: 8px 20px;
       border-radius: 24px;
       font-size: 15px;
@@ -212,10 +212,11 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(15, 23, 42, 0.85);
       border: 1px solid var(--border-color);
       box-shadow: 0 4px 15px rgba(0,0,0,0.3);
       transition: all 0.3s ease;
+      cursor: pointer;
     }
 
     .status-dot {
@@ -356,7 +357,7 @@
       <div class="brand-icon">⚡</div>
       <div>
         <div class="brand-title">JARVIS 鋼鐵人核心</div>
-        <div class="brand-subtitle">陳河志的AI超級大腦・語音中樞</div>
+        <div class="brand-subtitle">陳河志的AI超級大腦・流暢語音中樞</div>
       </div>
     </div>
     <div id="sessionBtn" class="session-badge master" onclick="toggleSession()">
@@ -366,10 +367,10 @@
 
   <!-- 中央弧形反應爐 (Arc Reactor) -->
   <div class="reactor-container">
-    <div id="arcReactor" class="arc-reactor" onclick="toggleJarvisMode()">
-      <button id="coreBtn" class="core-btn" title="點擊切換賈維斯模式">🎙️</button>
+    <div id="arcReactor" class="arc-reactor" onclick="handleReactorClick()">
+      <button id="coreBtn" class="core-btn" title="點擊反應爐">🎙️</button>
     </div>
-    <div id="statusBanner" class="status-banner">
+    <div id="statusBanner" class="status-banner" onclick="handleReactorClick()">
       <div id="statusDot" class="status-dot"></div>
       <span id="statusText">點擊反應爐啟動賈維斯連續免手持對話</span>
     </div>
@@ -386,9 +387,11 @@
   <!-- 對話紀錄區 -->
   <div id="chatBox" class="chat-container">
     <div class="bubble assistant">
-      阿志你好！我是你的賈維斯數位大腦。<br>
-      在此安全環境下，點擊上方反應爐即可進入<strong>「連續免動手對話」</strong>。<br>
-      你戴著耳機烘豆或煮咖啡時，我回覆中你<strong>隨時直接開口說話</strong>，我會立刻閉嘴聽你說！
+      阿志你好！賈維斯防回音流暢版本已就緒。<br>
+      在此版本中：<br>
+      1. <strong>告別口吃打斷</strong>：我回答時自動防喇叭回音，回答一氣呵成，字字流暢！<br>
+      2. <strong>回答完畢秒接聽</strong>：我說完最後一字的同時，立刻自動無縫開麥聽你說！<br>
+      3. <strong>隨時手動插話</strong>：回答中若想打斷我，輕碰一下中間反應爐即可立刻切換聆聽！
     </div>
   </div>
 
@@ -404,7 +407,7 @@
     
     // 檢查 URL 參數
     const urlParams = new URLSearchParams(window.location.search);
-    let isMaster = urlParams.get('user') === 'simon' || true; // 預設為阿志
+    let isMaster = urlParams.get('user') === 'simon' || true;
     let currentSessionId = isMaster ? 'voice-user-simon-master' : ('voice-guest-' + Date.now());
 
     let isJarvisActive = false;
@@ -412,6 +415,8 @@
     let isSpeaking = false;
     let isThinking = false;
     let synth = window.speechSynthesis;
+    let silenceTimer = null;
+    let currentTranscript = '';
 
     // DOM 元素
     const arcReactor = document.getElementById('arcReactor');
@@ -479,26 +484,42 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // 音效
-    function playBeep(freq = 660, dur = 0.08) {
+    // 雙音調未來科技感音效
+    function playBeep(type = 'wake') {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.frequency.value = freq;
-        gain.gain.value = 0.08;
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + dur);
+        if (type === 'wake') {
+          // 開機雙音 (587Hz -> 880Hz)
+          playTone(ctx, 587, 0, 0.08);
+          playTone(ctx, 880, 0.08, 0.12);
+        } else if (type === 'thinking') {
+          // 收到音 (520Hz -> 659Hz)
+          playTone(ctx, 520, 0, 0.06);
+          playTone(ctx, 659, 0.06, 0.08);
+        } else if (type === 'stop') {
+          // 中止音
+          playTone(ctx, 440, 0, 0.1);
+        }
       } catch (e) {}
     }
 
-    // ===== 核心：語音辨識與即時插話打斷 =====
+    function playTone(ctx, freq, delay, dur) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.08, ctx.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + dur);
+    }
+
+    // ===== 核心：語音辨識與防回音機制 =====
     function initSpeechRecognition() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
-        alert('抱歉，此瀏覽器不支援 SpeechRecognition 語音功能，請使用 Chrome 瀏覽器！');
+        alert('此瀏覽器不支援 SpeechRecognition 語音功能，請使用 Chrome 瀏覽器！');
         return null;
       }
 
@@ -509,20 +530,14 @@
 
       rec.onstart = () => {
         if (isJarvisActive && !isSpeaking && !isThinking) {
-          setStatus('listening', '● 賈維斯聆聽中... (隨時說話)');
+          setStatus('listening', '● 賈維斯聆聽中... (請說話)');
         }
       };
 
       rec.onresult = (event) => {
-        // 【核心機制：即時插話打斷 (Barge-in)】
-        if (isSpeaking) {
-          console.log('[Barge-in] 偵測到使用者開口，立即打斷發聲！');
-          if (synth && synth.speaking) {
-            synth.cancel();
-          }
-          isSpeaking = false;
-          setStatus('interrupted', '🛑 偵測到插話！切換聆聽...');
-          playBeep(440, 0.06);
+        // 【關鍵防護】：若正在朗讀回覆中，忽略任何喇叭回音！
+        if (isSpeaking || isThinking) {
+          return;
         }
 
         let interim = '';
@@ -535,14 +550,27 @@
           }
         }
 
-        if (interim && !isSpeaking && !isThinking) {
-          statusText.innerText = '聽取中: ' + interim;
+        const candidate = (final || interim).trim();
+        if (candidate) {
+          currentTranscript = candidate;
+          statusText.innerText = '聽取中: ' + candidate;
+
+          // 【加速斷句機制】：偵測到語音後，設定 750ms 快速靜音計時器，不等瀏覽器慢吞吞的 1.5 秒
+          clearTimeout(silenceTimer);
+          silenceTimer = setTimeout(() => {
+            if (currentTranscript && !isSpeaking && !isThinking) {
+              const msg = currentTranscript;
+              currentTranscript = '';
+              handleUserQuery(msg);
+            }
+          }, 750);
         }
 
         if (final.trim().length > 0) {
-          const userMessage = final.trim();
-          console.log('[User Speech Final]:', userMessage);
-          handleUserQuery(userMessage);
+          clearTimeout(silenceTimer);
+          const msg = final.trim();
+          currentTranscript = '';
+          handleUserQuery(msg);
         }
       };
 
@@ -555,16 +583,33 @@
       };
 
       rec.onend = () => {
-        console.log('SpeechRecognition ended.');
-        // 若賈維斯模式仍在且沒有在說話/思考中，自動重啟保持待命
+        // 若賈維斯模式仍在且非說話/思考中，自動重啟保持待命
         if (isJarvisActive && !isSpeaking && !isThinking) {
-          try {
-            rec.start();
-          } catch (e) {}
+          try { rec.start(); } catch (e) {}
         }
       };
 
       return rec;
+    }
+
+    // 點擊反應爐：若正在說話則「手動插話打斷」；否則切換開關
+    function handleReactorClick() {
+      if (isSpeaking) {
+        // 【核心打斷機制】：正在說話時點擊，秒級打斷！
+        if (synth && synth.speaking) {
+          synth.cancel();
+        }
+        isSpeaking = false;
+        playBeep('stop');
+        setStatus('interrupted', '🛑 已為你打斷回覆，切換聆聽...');
+        setTimeout(() => {
+          if (isJarvisActive) {
+            safeStartRecognition();
+          }
+        }, 300);
+      } else {
+        toggleJarvisMode();
+      }
     }
 
     // 啟動 / 停止賈維斯模式
@@ -576,37 +621,44 @@
       }
     }
 
-    function startJarvisMode() {
+    function safeStartRecognition() {
       if (!recognition) {
         recognition = initSpeechRecognition();
       }
       if (!recognition) return;
-
-      isJarvisActive = true;
-      playBeep(880, 0.12);
-      setStatus('listening', '● 賈維斯在線，請說...');
       try {
         recognition.start();
-      } catch (e) {
-        console.log('recognition already running:', e);
+        setStatus('listening', '● 賈維斯聆聽中... (請說話)');
+      } catch (e) {}
+    }
+
+    function safeStopRecognition() {
+      if (recognition) {
+        try { recognition.abort(); } catch (e) {}
       }
+    }
+
+    function startJarvisMode() {
+      isJarvisActive = true;
+      playBeep('wake');
+      setStatus('listening', '● 賈維斯在線，阿志請說...');
+      safeStartRecognition();
       speak('賈維斯在線，阿志請說。');
     }
 
     function stopJarvisMode() {
       isJarvisActive = false;
-      if (recognition) {
-        try { recognition.stop(); } catch(e) {}
-      }
+      safeStopRecognition();
       if (synth && synth.speaking) {
         synth.cancel();
       }
       isSpeaking = false;
       isThinking = false;
+      clearTimeout(silenceTimer);
       setStatus('idle', '點擊反應爐啟動賈維斯連續免手持對話');
     }
 
-    // 語音朗讀 (TTS)
+    // 語音朗讀 (TTS) - 100% 杜絕口吃回音
     function speak(text, callback) {
       if (!synth) {
         if (callback) callback();
@@ -614,29 +666,32 @@
       }
       synth.cancel();
 
-      // 純文字淨化，去掉 markdown 符號
-      const clean = text.replace(/[*#`_\[\]()]/g, '').replace(/\n+/g, '，');
+      // 【徹底杜絕口吃關鍵】：說話期間暫時關閉麥克風辨識，防止吃到喇叭聲音自我打斷！
+      safeStopRecognition();
+
+      // 純文字淨化，去掉 markdown 符號與贅字
+      const clean = text.replace(/[*#`_\[\]()]/g, '').replace(/https?:\/\/\S+/g, '').replace(/\n+/g, '，');
       const utter = new SpeechSynthesisUtterance(clean);
       utter.lang = 'zh-TW';
-      utter.rate = 1.05;
+      utter.rate = 1.12; // 稍快、更乾脆俐落
       utter.pitch = 1.0;
 
-      // 優先選取台灣語音
+      // 優先選取高品質台灣中文語音
       const voices = synth.getVoices();
       const twVoice = voices.find(v => v.lang.includes('TW') || v.lang.includes('Hant') || v.name.includes('Yating') || v.name.includes('Meijia') || v.name.includes('Google 國語'));
       if (twVoice) utter.voice = twVoice;
 
       utter.onstart = () => {
         isSpeaking = true;
-        setStatus('speaking', '🔊 賈維斯回覆中...（隨時開口可插話打斷）');
+        setStatus('speaking', '🔊 賈維斯回覆中... (點擊反應爐可隨時打斷)');
       };
 
       utter.onend = () => {
         isSpeaking = false;
         if (isJarvisActive) {
-          setStatus('listening', '● 賈維斯聆聽中... (隨時說話)');
-          // 確保 recognition 保持在線
-          try { recognition.start(); } catch(e) {}
+          // 【無縫接續聆聽】：說完最後一字的同一毫秒，自動重開麥克風！
+          setStatus('listening', '● 賈維斯聆聽中... (請說話)');
+          safeStartRecognition();
         } else {
           setStatus('idle', '已待命');
         }
@@ -645,7 +700,9 @@
 
       utter.onerror = () => {
         isSpeaking = false;
-        if (isJarvisActive) setStatus('listening', '● 賈維斯聆聽中...');
+        if (isJarvisActive) {
+          safeStartRecognition();
+        }
         if (callback) callback();
       };
 
@@ -656,9 +713,15 @@
     async function handleUserQuery(msg) {
       if (!msg || msg.trim() === '') return;
       
+      // 停止接收，避免重複觸發
+      clearTimeout(silenceTimer);
+      currentTranscript = '';
+      safeStopRecognition();
+
       appendBubble('user', msg);
       isThinking = true;
-      setStatus('thinking', '⚡ 賈維斯大腦思考中...');
+      playBeep('thinking'); // 收到立即反饋音效，消除真空等待感
+      setStatus('thinking', '⚡ 賈維斯大腦檢索思考中...');
 
       try {
         const response = await fetch(CHAT_WEBHOOK_URL, {
@@ -687,7 +750,7 @@
       }
     }
 
-    // 手動按鍵或按鈕送出
+    // 手動送出
     function sendManual() {
       const val = textInput.value.trim();
       if (!val) return;
@@ -699,7 +762,6 @@
       handleUserQuery(promptText);
     }
 
-    // 初始化語音庫載入
     if (synth && synth.onvoiceschanged !== undefined) {
       synth.onvoiceschanged = () => synth.getVoices();
     }

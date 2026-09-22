@@ -239,6 +239,10 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.3);
       transition: all 0.3s ease;
       cursor: pointer;
+      max-width: 90%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .status-dot {
@@ -246,6 +250,7 @@
       height: 10px;
       border-radius: 50%;
       background: var(--cyan-glow);
+      flex-shrink: 0;
     }
 
     /* 對話歷史氣泡區 */
@@ -380,9 +385,9 @@
       <div>
         <div class="brand-title">
           JARVIS 賈維斯
-          <span class="brand-badge">郎雄靈魂版</span>
+          <span class="brand-badge">郎雄老匠人靈魂版</span>
         </div>
-        <div class="brand-subtitle">陳河志的AI超級大腦・老匠人中樞</div>
+        <div class="brand-subtitle">陳河志的AI超級大腦・沉穩耐心傾聽</div>
       </div>
     </div>
     <div class="header-controls">
@@ -418,7 +423,8 @@
   <div id="chatBox" class="chat-container">
     <div class="bubble assistant">
       ……阿志，我在。<br>
-      火候抓緊點，心要定。有什麼事情，你開口，我聽著。
+      你慢慢說，不要急，我會耐心聽你說完整句話。<br>
+      想停頓換氣都行，說完了我再來回應你。
     </div>
   </div>
 
@@ -431,17 +437,14 @@
   <script>
     // ===== 配置設定 =====
     const CHAT_WEBHOOK_URL = 'https://oeccafecf.zeabur.app/webhook/a440835f-893a-4b46-a5a0-c9fdd9b129e7/chat';
-    
-    // 神經語音端點 (優先呼叫 Zeabur 部署端點，若同源則呼叫 /api/tts)
     const NEURAL_TTS_URL = window.location.hostname.includes('zeabur') ? '/api/tts' : 'https://jarvis-oeccafe.zeabur.app/api/tts';
 
     const urlParams = new URLSearchParams(window.location.search);
     let isMaster = urlParams.get('user') === 'simon' || true;
     let currentSessionId = isMaster ? 'voice-user-simon-master' : ('voice-guest-' + Date.now());
 
-    // 發聲引擎模式：'neural' (微軟神經老聲-雲健) 或 'local' (本機降頻男聲)
     let voiceEngine = 'neural'; 
-    let activeAudio = null; // 當前播放中的 HTML5 Audio
+    let activeAudio = null;
 
     let isJarvisActive = false;
     let recognition = null;
@@ -449,7 +452,10 @@
     let isThinking = false;
     let synth = window.speechSynthesis;
     let silenceTimer = null;
-    let currentTranscript = '';
+    
+    // 句子累積器（耐心累積完整語句，絕不提早截斷）
+    let accumulatedText = '';
+    let currentInterim = '';
 
     // DOM 元素
     const arcReactor = document.getElementById('arcReactor');
@@ -462,7 +468,6 @@
     const sessionBtn = document.getElementById('sessionBtn');
     const voiceModeBtn = document.getElementById('voiceModeBtn');
 
-    // 切換語音引擎
     function toggleVoiceEngine() {
       if (voiceEngine === 'neural') {
         voiceEngine = 'local';
@@ -477,7 +482,6 @@
       }
     }
 
-    // 更新 Session 顯示
     function updateSessionUI() {
       if (isMaster) {
         sessionBtn.className = 'badge-btn gold';
@@ -496,7 +500,6 @@
       appendBubble('system', `已切換為：${isMaster ? '阿志長效記憶模式 (個人專屬)' : '門市訪客模式 (用完即走)'}`);
     }
 
-    // 更新狀態樣式
     function setStatus(state, text) {
       statusText.innerText = text;
       arcReactor.className = 'arc-reactor ' + state;
@@ -532,7 +535,6 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // 科技反饋音
     function playBeep(type = 'wake') {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -560,7 +562,7 @@
       osc.stop(ctx.currentTime + delay + dur);
     }
 
-    // ===== 核心：語音辨識與防回音機制 =====
+    // ===== 核心：語音辨識與耐心聽取機制 =====
     function initSpeechRecognition() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
@@ -571,11 +573,11 @@
       const rec = new SpeechRecognition();
       rec.continuous = true;
       rec.interimResults = true;
-      rec.lang = 'zh-TW';
+      rec.lang = 'cmn-Hant-TW'; // 地道台灣繁體中文聲學模型
 
       rec.onstart = () => {
         if (isJarvisActive && !isSpeaking && !isThinking) {
-          setStatus('listening', '● 賈維斯聆聽中... (隨時說話)');
+          setStatus('listening', '● 賈維斯聆聽中... (請慢聊，我耐心聽著)');
         }
       };
 
@@ -583,35 +585,29 @@
         if (isSpeaking || isThinking) return;
 
         let interim = '';
-        let final = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
-            final += event.results[i][0].transcript;
+            accumulatedText += event.results[i][0].transcript;
           } else {
             interim += event.results[i][0].transcript;
           }
         }
+        currentInterim = interim;
 
-        const candidate = (final || interim).trim();
-        if (candidate) {
-          currentTranscript = candidate;
-          statusText.innerText = '聽取中: ' + candidate;
+        const fullDisplay = (accumulatedText + ' ' + currentInterim).trim();
+        if (fullDisplay) {
+          statusText.innerText = '聽取中 (等您說完...): ' + fullDisplay;
 
+          // 【關鍵耐心等待機制】：給阿志 2.0 秒充足的換氣與思考時間，絕對不搶話！
           clearTimeout(silenceTimer);
           silenceTimer = setTimeout(() => {
-            if (currentTranscript && !isSpeaking && !isThinking) {
-              const msg = currentTranscript;
-              currentTranscript = '';
-              handleUserQuery(msg);
+            const finalQuery = (accumulatedText + ' ' + currentInterim).trim();
+            if (finalQuery && !isSpeaking && !isThinking) {
+              accumulatedText = '';
+              currentInterim = '';
+              handleUserQuery(finalQuery);
             }
-          }, 750);
-        }
-
-        if (final.trim().length > 0) {
-          clearTimeout(silenceTimer);
-          const msg = final.trim();
-          currentTranscript = '';
-          handleUserQuery(msg);
+          }, 2000);
         }
       };
 
@@ -632,10 +628,17 @@
       return rec;
     }
 
-    // 點擊反應爐：若正在發聲則「立即打斷」；否則切換開關
+    // 點擊反應爐：若正在發聲則「立即打斷」；若正在聽且已有字句則「立即送出」；否則切換開關
     function handleReactorClick() {
       if (isSpeaking) {
         interruptSpeech();
+      } else if (isJarvisActive && (accumulatedText || currentInterim)) {
+        // 【阿志專屬捷徑】：若說完了不想等 2 秒，輕按一下直接立即送出！
+        clearTimeout(silenceTimer);
+        const finalQuery = (accumulatedText + ' ' + currentInterim).trim();
+        accumulatedText = '';
+        currentInterim = '';
+        handleUserQuery(finalQuery);
       } else {
         toggleJarvisMode();
       }
@@ -670,7 +673,7 @@
       if (!recognition) return;
       try {
         recognition.start();
-        setStatus('listening', '● 賈維斯聆聽中... (請說話)');
+        setStatus('listening', '● 賈維斯聆聽中... (請慢聊，我耐心聽著)');
       } catch (e) {}
     }
 
@@ -682,14 +685,18 @@
 
     function startJarvisMode() {
       isJarvisActive = true;
+      accumulatedText = '';
+      currentInterim = '';
       playBeep('wake');
       setStatus('listening', '● 賈維斯在線，阿志請說...');
       safeStartRecognition();
-      speak('阿志，我在。你說，我聽著。');
+      speak('阿志，我在。你慢慢說，不要急，我聽著。');
     }
 
     function stopJarvisMode() {
       isJarvisActive = false;
+      accumulatedText = '';
+      currentInterim = '';
       safeStopRecognition();
       if (activeAudio) {
         activeAudio.pause();
@@ -720,11 +727,9 @@
         }
       }
 
-      // 降級或手動本機模式
       speakLocal(clean, () => onSpeakFinished(callback));
     }
 
-    // 引擎一：微軟神經老聲 (雲健 - 郎雄質感)
     function speakNeural(text) {
       return new Promise((resolve, reject) => {
         const controller = new AbortController();
@@ -768,7 +773,6 @@
       });
     }
 
-    // 引擎二：本機降頻男中低音 (音調 0.82，語速 0.88)
     function speakLocal(text, done) {
       if (!synth) {
         if (done) done();
@@ -778,10 +782,9 @@
 
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = 'zh-TW';
-      utter.rate = 0.88; // 沉緩篤定
-      utter.pitch = 0.82; // 壓低音頻，胸腔共鳴
+      utter.rate = 0.88; 
+      utter.pitch = 0.82; 
 
-      // 優先選取成熟台灣男聲
       const voices = synth.getVoices();
       const twMaleVoice = voices.find(v => (v.lang.includes('TW') || v.lang.includes('zh')) && 
         (v.name.includes('Male') || v.name.includes('男') || v.name.includes('Han') || v.name.includes('Siri 1') || v.name.includes('Yating')));
@@ -805,8 +808,10 @@
 
     function onSpeakFinished(callback) {
       isSpeaking = false;
+      accumulatedText = '';
+      currentInterim = '';
       if (isJarvisActive) {
-        setStatus('listening', '● 賈維斯聆聽中... (請說話)');
+        setStatus('listening', '● 賈維斯聆聽中... (請慢聊，我耐心聽著)');
         safeStartRecognition(); // 說完毫秒級自動開麥
       } else {
         setStatus('idle', '已待命');
@@ -819,7 +824,8 @@
       if (!msg || msg.trim() === '') return;
       
       clearTimeout(silenceTimer);
-      currentTranscript = '';
+      accumulatedText = '';
+      currentInterim = '';
       safeStopRecognition();
 
       appendBubble('user', msg);

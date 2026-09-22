@@ -1,0 +1,12 @@
+{
+  "name": "jarvis-hud",
+  "version": "1.0.0",
+  "description": "陳河志的AI超級大腦 - 鋼鐵人賈維斯語音前端與郎雄神經語音中樞",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "msedge-tts": "^2.0.7"
+  }
+}

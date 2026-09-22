@@ -322,10 +322,116 @@
       cursor: pointer;
       transition: background 0.2s, border-color 0.2s;
     }
-    .quick-chip:hover {
-      background: rgba(0, 242, 254, 0.15);
-      border-color: var(--cyan-glow);
+    .quick-chip.gold {
+      border-color: rgba(251, 191, 36, 0.6);
+      color: var(--gold-glow);
+      background: rgba(251, 191, 36, 0.1);
+      font-weight: 700;
+    }
+    .quick-chip.gold:hover {
+      background: rgba(251, 191, 36, 0.25);
+      border-color: #f59e0b;
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+    }
+
+    /* 名片拍立得全螢幕/浮動 HUD 模態框 (Card Scanner HUD Modal) */
+    .scanner-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.25s ease;
+    }
+    .scanner-modal-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 10, 20, 0.85);
+      backdrop-filter: blur(8px);
+    }
+    .scanner-modal-content {
+      position: relative;
+      width: 95%;
+      max-width: 650px;
+      height: 90vh;
+      max-height: 840px;
+      background: rgba(13, 22, 38, 0.96);
+      border: 1px solid rgba(0, 242, 254, 0.5);
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0, 242, 254, 0.35);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 10;
+    }
+    .scanner-modal-header {
+      padding: 12px 18px;
+      background: rgba(10, 16, 28, 0.98);
+      border-bottom: 1px solid rgba(0, 242, 254, 0.25);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .scanner-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .scanner-icon {
+      font-size: 24px;
+    }
+    .scanner-main-title {
+      font-size: 16px;
+      font-weight: bold;
       color: #fff;
+    }
+    .scanner-sub-title {
+      font-size: 11px;
+      color: var(--cyan-glow);
+    }
+    .scanner-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .scanner-btn-external, .scanner-btn-close {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid rgba(0, 242, 254, 0.4);
+      background: rgba(0, 242, 254, 0.1);
+      color: #e2e8f0;
+      transition: all 0.2s;
+    }
+    .scanner-btn-external:hover {
+      background: rgba(0, 242, 254, 0.25);
+    }
+    .scanner-btn-close {
+      border-color: rgba(239, 68, 68, 0.5);
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+    }
+    .scanner-btn-close:hover {
+      background: rgba(239, 68, 68, 0.35);
+    }
+    .scanner-iframe-container {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: #0f172a;
+    }
+    .scanner-iframe-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
     }
 
     /* 底部輸入控制列 */
@@ -413,6 +519,7 @@
 
   <!-- 快捷提問 -->
   <div class="quick-bar">
+    <div class="quick-chip gold" onclick="sendQuick('呼叫名片拍立得')">📇 名片拍立得</div>
     <div class="quick-chip" onclick="sendQuick('賈維斯，今天適逢什麼節氣？依當前時令，吧檯與健康該如何順應調理？')">🍂 今日節氣與生活物產</div>
     <div class="quick-chip" onclick="sendQuick('賈維斯，我戴著耳機正在烘豆，測試一下連線狀態')">🎧 測試連線</div>
     <div class="quick-chip" onclick="sendQuick('今天門市有哪些重要事項與待辦？')">📅 今日行程</div>
@@ -434,6 +541,33 @@
     <input type="text" id="textInput" class="input-box" placeholder="說出指令，或在此打字..." onkeydown="if(event.key==='Enter') sendManual()">
     <button class="send-btn" onclick="sendManual()">➤</button>
   </footer>
+
+  <!-- 名片拍立得全螢幕/浮層模態框 (Card Scanner HUD Modal) -->
+  <div id="cardScannerModal" class="scanner-modal" style="display: none;">
+    <div class="scanner-modal-backdrop" onclick="closeCardScannerModal()"></div>
+    <div class="scanner-modal-content">
+      <div class="scanner-modal-header">
+        <div class="scanner-title">
+          <span class="scanner-icon">📇</span>
+          <div>
+            <div class="scanner-main-title">AI 名片拍立得 (Card Scanner)</div>
+            <div class="scanner-sub-title">WF-CardScanner・實體名片 10 秒拍照入庫</div>
+          </div>
+        </div>
+        <div class="scanner-actions">
+          <button class="scanner-btn-external" onclick="openCardScannerExternal()" title="在新分頁開啟相機全螢幕">
+            ↗ 新分頁
+          </button>
+          <button class="scanner-btn-close" onclick="closeCardScannerModal()" title="關閉返回賈維斯">
+            ✕ 關閉
+          </button>
+        </div>
+      </div>
+      <div class="scanner-iframe-container">
+        <iframe id="cardScannerIframe" src="" frameborder="0" allow="camera; microphone"></iframe>
+      </div>
+    </div>
+  </div>
 
   <script>
     // ===== 配置設定 =====
@@ -712,11 +846,37 @@
       setStatus('idle', '點擊反應爐喚醒郎雄老匠人賈維斯');
     }
 
+    // ===== 名片拍立得 (Card Scanner) 浮動視窗控制 =====
+    const CARD_SCANNER_URL = 'https://oeccafecf.zeabur.app/form/21cd8976-a4bd-490c-8be9-d769aad02fd8';
+
+    function openCardScannerModal() {
+      const modal = document.getElementById('cardScannerModal');
+      const iframe = document.getElementById('cardScannerIframe');
+      if (modal && iframe) {
+        if (!iframe.src || iframe.src === 'about:blank' || iframe.src === '') {
+          iframe.src = CARD_SCANNER_URL;
+        }
+        modal.style.display = 'flex';
+      }
+    }
+
+    function closeCardScannerModal() {
+      const modal = document.getElementById('cardScannerModal');
+      if (modal) modal.style.display = 'none';
+      if (isJarvisActive) {
+        safeStartRecognition();
+      }
+    }
+
+    function openCardScannerExternal() {
+      window.open(CARD_SCANNER_URL, '_blank');
+    }
+
     // ===== 雙引擎語音朗讀 (TTS) =====
     async function speak(text, callback) {
       safeStopRecognition(); // 播放期間關閉麥克風，防回音結巴
 
-      const clean = text.replace(/[*#`_\[\]()]/g, '').replace(/https?:\/\/\S+/g, '').replace(/\n+/g, '，');
+      const clean = text.replace(/\[ACTION:.*?\]/g, '').replace(/[*#`_\[\]()]/g, '').replace(/https?:\/\/\S+/g, '').replace(/\n+/g, '，');
 
       if (voiceEngine === 'neural') {
         try {
@@ -849,8 +1009,31 @@
         const reply = data.output || data.text || '……收到。';
         
         isThinking = false;
-        appendBubble('assistant', reply);
-        speak(reply);
+
+        // 偵測名片拍立得喚醒指令
+        const isCardScanner = reply.includes('[ACTION:OPEN_CARD_SCANNER]') || msg.includes('名片');
+        let cleanReply = reply.replace(/\[ACTION:.*?\]/g, '').trim();
+
+        let bubbleHtml = cleanReply.replace(/\n/g, '<br>');
+        if (isCardScanner) {
+          bubbleHtml += `
+            <div style="margin-top:12px; padding:10px 14px; border-radius:8px; background:rgba(217,119,6,0.15); border:1px solid rgba(251,191,36,0.5); display:flex; gap:10px; align-items:center;">
+              <span style="font-size:1.4rem;">📇</span>
+              <div style="flex:1;">
+                <div style="font-weight:bold; color:var(--gold-glow); font-size:0.95rem;">AI 名片拍立得已就緒</div>
+                <div style="font-size:0.8rem; color:#d1d5db;">WF-CardScanner 拍照建檔與喚醒漏斗</div>
+              </div>
+              <button onclick="openCardScannerModal()" style="padding:6px 12px; background:#d97706; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:0.85rem; box-shadow:0 0 10px rgba(217,119,6,0.4);">打開視窗</button>
+              <button onclick="openCardScannerExternal()" style="padding:6px 10px; background:rgba(0,242,254,0.1); color:var(--cyan-glow); border:1px solid rgba(0,242,254,0.3); border-radius:6px; cursor:pointer; font-size:0.85rem;" title="在新分頁全螢幕開啟">↗</button>
+            </div>
+          `;
+          setTimeout(() => {
+            openCardScannerModal();
+          }, 600);
+        }
+
+        appendBubble('assistant', bubbleHtml);
+        speak(cleanReply);
 
       } catch (err) {
         console.error('Fetch WF-07 Error:', err);

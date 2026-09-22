@@ -387,11 +387,11 @@
   <!-- 對話紀錄區 -->
   <div id="chatBox" class="chat-container">
     <div class="bubble assistant">
-      阿志你好！賈維斯防回音流暢版本已就緒。<br>
-      在此版本中：<br>
-      1. <strong>告別口吃打斷</strong>：我回答時自動防喇叭回音，回答一氣呵成，字字流暢！<br>
-      2. <strong>回答完畢秒接聽</strong>：我說完最後一字的同時，立刻自動無縫開麥聽你說！<br>
-      3. <strong>隨時手動插話</strong>：回答中若想打斷我，輕碰一下中間反應爐即可立刻切換聆聽！
+      志哥你好！專屬語音副手在線。<br>
+      戴上耳機、點擊中間反應爐，我們隨時用語音並肩作戰：<br>
+      1. <strong>告別口吃回音</strong>：回答一氣呵成，字字清晰流暢。<br>
+      2. <strong>回答完畢秒接聽</strong>：說完最後一字的同時，立刻自動無縫開麥聽你說。<br>
+      3. <strong>隨時手動插話</strong>：想隨時打斷我，輕碰一下反應爐立刻切換聆聽！
     </div>
   </div>
 
@@ -641,9 +641,9 @@
     function startJarvisMode() {
       isJarvisActive = true;
       playBeep('wake');
-      setStatus('listening', '● 賈維斯在線，阿志請說...');
+      setStatus('listening', '● 專屬副手在線，志哥請說...');
       safeStartRecognition();
-      speak('賈維斯在線，阿志請說。');
+      speak('志哥請說，我在。');
     }
 
     function stopJarvisMode() {

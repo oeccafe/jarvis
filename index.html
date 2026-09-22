@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>鋼鐵人賈維斯 (郎雄老匠人靈魂版) - 陳河志的AI超級大腦</title>
+  <title>鋼鐵人賈維斯 (老匠人版) - 陳河志的AI超級大腦</title>
   <style>
     :root {
       --bg-dark: #070b14;
@@ -497,14 +497,14 @@
       <div>
         <div class="brand-title">
           JARVIS 賈維斯
-          <span class="brand-badge">郎雄老匠人靈魂版</span>
+          <span class="brand-badge">老匠人隨身版</span>
         </div>
         <div class="brand-subtitle">陳河志的AI超級大腦・沉穩耐心傾聽</div>
       </div>
     </div>
     <div class="header-controls">
       <div id="voiceModeBtn" class="badge-btn gold" onclick="toggleVoiceEngine()" title="切換發聲模式">
-        🎙️ 郎雄・神經老聲
+        🎙️ 沉穩・神經原聲
       </div>
       <div id="sessionBtn" class="badge-btn" onclick="toggleSession()">
         👑 阿志長效記憶
@@ -519,7 +519,7 @@
     </div>
     <div id="statusBanner" class="status-banner" onclick="handleReactorClick()">
       <div id="statusDot" class="status-dot"></div>
-      <span id="statusText">點擊反應爐喚醒郎雄老匠人賈維斯</span>
+      <span id="statusText">點擊反應爐喚醒賈維斯</span>
     </div>
   </div>
 
@@ -536,9 +536,7 @@
   <!-- 對話紀錄區 -->
   <div id="chatBox" class="chat-container">
     <div class="bubble assistant">
-      ……阿志，我在。<br>
-      你慢慢說，不要急，我會耐心聽你說完整句話。<br>
-      想停頓換氣都行，說完了我再來回應你。
+      阿志，我在。
     </div>
   </div>
 
@@ -613,12 +611,12 @@
       if (voiceEngine === 'neural') {
         voiceEngine = 'local';
         voiceModeBtn.className = 'badge-btn';
-        voiceModeBtn.innerHTML = '🔊 郎叔・本地降頻';
+        voiceModeBtn.innerHTML = '🔊 本機・降頻男聲';
         appendBubble('system', '已切換為：本機零延遲降頻男中低音（音調 0.82，語速 0.88）');
       } else {
         voiceEngine = 'neural';
         voiceModeBtn.className = 'badge-btn gold';
-        voiceModeBtn.innerHTML = '🎙️ 郎雄・神經老聲';
+        voiceModeBtn.innerHTML = '🎙️ 沉穩・神經原聲';
         appendBubble('system', '已切換為：微軟極致老生神經原聲（滄桑深沉、老匠人質感）');
       }
     }
@@ -900,7 +898,7 @@
       playBeep('wake');
       setStatus('listening', '● 賈維斯在線，阿志請說...');
       safeStartRecognition();
-      speak('阿志，我在。你慢慢說，不要急，我聽著。');
+      speak('阿志，我在。');
     }
 
     function stopJarvisMode() {
@@ -919,7 +917,7 @@
       isThinking = false;
       clearTimeout(silenceTimer);
       clearTimeout(window._recRestartTimer);
-      setStatus('idle', '點擊反應爐喚醒郎雄老匠人賈維斯');
+      setStatus('idle', '點擊反應爐喚醒賈維斯');
     }
 
     // ===== 名片拍立得 (Card Scanner) 浮動視窗控制 =====
@@ -1005,7 +1003,7 @@
 
           audio.onplay = () => {
             isSpeaking = true;
-            setStatus('speaking', '🔊 郎叔回覆中... (點擊反應爐可打斷)');
+            setStatus('speaking', '🔊 賈維斯回覆中... (點擊反應爐可打斷)');
           };
 
           audio.onended = () => {
@@ -1061,7 +1059,7 @@
 
       utter.onstart = () => {
         isSpeaking = true;
-        setStatus('speaking', '🔊 郎叔回覆中... (點擊反應爐可打斷)');
+        setStatus('speaking', '🔊 賈維斯回覆中... (點擊反應爐可打斷)');
       };
 
       utter.onend = finish;
@@ -1100,7 +1098,7 @@
       appendBubble('user', msg);
       isThinking = true;
       playBeep('thinking');
-      setStatus('thinking', '⚡ 郎叔大腦思考中...');
+      setStatus('thinking', '⚡ 賈維斯思考中...');
 
       try {
         const response = await fetch(CHAT_WEBHOOK_URL, {

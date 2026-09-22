@@ -484,6 +484,12 @@
 </head>
 <body>
 
+  <!-- 社群/LINE 內建瀏覽器環境引導橫幅 -->
+  <div id="inAppBanner" style="display:none; background: linear-gradient(90deg, #92400e, #b45309); color: #fff; padding: 10px 16px; font-size: 0.88rem; line-height: 1.45; border-bottom: 1px solid #f59e0b; position: relative; z-index: 99999;">
+    <span>💡 <strong>阿志提醒</strong>：偵測到您在 LINE/社群 內建視窗中開啟，麥克風可能會被限制。請點右上角「...」或「分享」，選擇<strong>「在預設瀏覽器 (Safari / Chrome) 開啟」</strong>，語音對話才順暢！</span>
+    <button onclick="document.getElementById('inAppBanner').style.display='none'" style="float: right; background: transparent; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; margin-left: 8px; line-height: 1;">✕</button>
+  </div>
+
   <!-- 頂部資訊 -->
   <header>
     <div class="brand">
@@ -670,9 +676,61 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
+    // ===== 手機端 (iOS Safari / Android) 音訊解鎖與相容性中樞 =====
+    let isAudioUnlocked = false;
+    let unlockedAudio = null;
+    let sharedAudioCtx = null;
+
+    function unlockMobileAudio() {
+      if (isAudioUnlocked) return;
+      try {
+        // 1. 解鎖 Web Audio Context
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          if (!sharedAudioCtx) sharedAudioCtx = new AudioCtx();
+          if (sharedAudioCtx.state === 'suspended') sharedAudioCtx.resume();
+          const buf = sharedAudioCtx.createBuffer(1, 1, 22050);
+          const src = sharedAudioCtx.createBufferSource();
+          src.buffer = buf;
+          src.connect(sharedAudioCtx.destination);
+          src.start(0);
+        }
+
+        // 2. 解鎖 HTML5 Audio（預載微型靜音音訊，打破 iOS Safari 非同步音訊播放封鎖）
+        if (!unlockedAudio) {
+          unlockedAudio = new Audio();
+          unlockedAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+          unlockedAudio.play().then(() => {
+            unlockedAudio.pause();
+            unlockedAudio.currentTime = 0;
+          }).catch(() => {});
+        }
+
+        // 3. 解鎖本機語音合成 (iOS SpeechSynthesis)
+        if (window.speechSynthesis) {
+          const silentUtter = new SpeechSynthesisUtterance('');
+          window.speechSynthesis.speak(silentUtter);
+        }
+
+        isAudioUnlocked = true;
+        console.log('Mobile audio context unlocked.');
+      } catch (e) {
+        console.warn('Audio unlock warning:', e);
+      }
+    }
+
+    // 監聽全域第一次觸摸或點擊，秒速靜默解鎖
+    ['touchstart', 'touchend', 'click'].forEach(evt => {
+      window.addEventListener(evt, unlockMobileAudio, { once: true, passive: true });
+    });
+
     function playBeep(type = 'wake') {
       try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!sharedAudioCtx && AudioCtx) sharedAudioCtx = new AudioCtx();
+        const ctx = sharedAudioCtx;
+        if (!ctx) return;
+        if (ctx.state === 'suspended') ctx.resume();
         if (type === 'wake') {
           playTone(ctx, 440, 0, 0.1);
           playTone(ctx, 659, 0.08, 0.12);
@@ -701,14 +759,14 @@
     function initSpeechRecognition() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
-        alert('此瀏覽器不支援 SpeechRecognition 語音功能，請使用 Chrome 瀏覽器！');
+        alert('此瀏覽器不支援 SpeechRecognition 語音功能。iPhone 請使用 Safari，安卓請使用 Chrome！');
         return null;
       }
 
       const rec = new SpeechRecognition();
       rec.continuous = true;
       rec.interimResults = true;
-      rec.lang = 'cmn-Hant-TW'; // 地道台灣繁體中文聲學模型
+      rec.lang = 'zh-TW'; // 全端標準繁體中文（相容 iOS Siri、Android、Mac）
 
       rec.onstart = () => {
         if (isJarvisActive && !isSpeaking && !isThinking) {
@@ -751,12 +809,20 @@
         if (e.error === 'not-allowed') {
           alert('請在瀏覽器網址列左側點擊圖示，允許麥克風使用權限！');
           stopJarvisMode();
+        } else if (e.error === 'no-speech') {
+          // 靜音屬正常現象，靜待 onend 自動重啟
         }
       };
 
       rec.onend = () => {
         if (isJarvisActive && !isSpeaking && !isThinking) {
-          try { rec.start(); } catch (e) {}
+          // iOS 釋放音訊硬體需緩衝，延遲 300ms 重啟避免 InvalidStateError
+          clearTimeout(window._recRestartTimer);
+          window._recRestartTimer = setTimeout(() => {
+            if (isJarvisActive && !isSpeaking && !isThinking) {
+              try { rec.start(); } catch (e) { console.warn('Rec restart caught:', e); }
+            }
+          }, 300);
         }
       };
 
@@ -765,6 +831,7 @@
 
     // 點擊反應爐：若正在發聲則「立即打斷」；若正在聽且已有字句則「立即送出」；否則切換開關
     function handleReactorClick() {
+      unlockMobileAudio();
       if (isSpeaking) {
         interruptSpeech();
       } else if (isJarvisActive && (accumulatedText || currentInterim)) {
@@ -781,7 +848,7 @@
 
     function interruptSpeech() {
       if (activeAudio) {
-        activeAudio.pause();
+        try { activeAudio.pause(); } catch(e) {}
         activeAudio = null;
       }
       if (synth && synth.speaking) {
@@ -806,10 +873,17 @@
     function safeStartRecognition() {
       if (!recognition) recognition = initSpeechRecognition();
       if (!recognition) return;
-      try {
-        recognition.start();
-        setStatus('listening', '● 賈維斯聆聽中... (請慢聊，我耐心聽著)');
-      } catch (e) {}
+      clearTimeout(window._recRestartTimer);
+      window._recRestartTimer = setTimeout(() => {
+        if (isJarvisActive && !isSpeaking && !isThinking) {
+          try {
+            recognition.start();
+            setStatus('listening', '● 賈維斯聆聽中... (請慢聊，我耐心聽著)');
+          } catch (e) {
+            console.warn('safeStartRecognition notice:', e.message);
+          }
+        }
+      }, 200);
     }
 
     function safeStopRecognition() {
@@ -819,6 +893,7 @@
     }
 
     function startJarvisMode() {
+      unlockMobileAudio();
       isJarvisActive = true;
       accumulatedText = '';
       currentInterim = '';
@@ -834,7 +909,7 @@
       currentInterim = '';
       safeStopRecognition();
       if (activeAudio) {
-        activeAudio.pause();
+        try { activeAudio.pause(); } catch(e) {}
         activeAudio = null;
       }
       if (synth && synth.speaking) {
@@ -843,6 +918,7 @@
       isSpeaking = false;
       isThinking = false;
       clearTimeout(silenceTimer);
+      clearTimeout(window._recRestartTimer);
       setStatus('idle', '點擊反應爐喚醒郎雄老匠人賈維斯');
     }
 
@@ -878,13 +954,22 @@
 
       const clean = text.replace(/\[ACTION:.*?\]/g, '').replace(/[*#`_\[\]()]/g, '').replace(/https?:\/\/\S+/g, '').replace(/\n+/g, '，');
 
+      // 安全看門狗：若因手機系統異常導致語音播放超過 12 秒未釋放，強制重啟麥克風避免假死
+      clearTimeout(window._speechWatchdog);
+      window._speechWatchdog = setTimeout(() => {
+        if (isSpeaking) {
+          console.warn('語音播放安全看門狗觸發，強制重啟聆聽狀態');
+          onSpeakFinished(callback);
+        }
+      }, Math.max(6000, clean.length * 450 + 3000));
+
       if (voiceEngine === 'neural') {
         try {
           await speakNeural(clean);
           onSpeakFinished(callback);
           return;
         } catch (err) {
-          console.warn('神經語音呼叫失敗，無縫降級本機語音:', err.message);
+          console.warn('神經語音呼叫失敗或被手機限制，無縫降級本機語音:', err.message);
         }
       }
 
@@ -909,26 +994,39 @@
         })
         .then(blob => {
           const audioUrl = URL.createObjectURL(blob);
-          if (activeAudio) activeAudio.pause();
-          activeAudio = new Audio(audioUrl);
+          
+          // 優先使用已解鎖的音訊實例（突破 iOS Safari / 跨瀏覽器非同步播放阻擋政策）
+          const audio = unlockedAudio || new Audio();
+          if (activeAudio && activeAudio !== audio) {
+            try { activeAudio.pause(); } catch(e) {}
+          }
+          activeAudio = audio;
+          audio.src = audioUrl;
 
-          activeAudio.onplay = () => {
+          audio.onplay = () => {
             isSpeaking = true;
             setStatus('speaking', '🔊 郎叔回覆中... (點擊反應爐可打斷)');
           };
 
-          activeAudio.onended = () => {
+          audio.onended = () => {
             URL.revokeObjectURL(audioUrl);
             activeAudio = null;
             resolve();
           };
 
-          activeAudio.onerror = (e) => {
+          audio.onerror = (e) => {
             activeAudio = null;
             reject(e);
           };
 
-          activeAudio.play().catch(reject);
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(err => {
+              console.warn('Neural audio play blocked by mobile:', err);
+              activeAudio = null;
+              reject(err);
+            });
+          }
         })
         .catch(reject);
       });
@@ -951,23 +1049,33 @@
         (v.name.includes('Male') || v.name.includes('男') || v.name.includes('Han') || v.name.includes('Siri 1') || v.name.includes('Yating')));
       if (twMaleVoice) utter.voice = twMaleVoice;
 
+      window._activeUtterance = utter; // 保持全域參照，防止 iOS Safari 垃圾回收提前中斷
+
+      let hasFinished = false;
+      const finish = () => {
+        if (hasFinished) return;
+        hasFinished = true;
+        window._activeUtterance = null;
+        if (done) done();
+      };
+
       utter.onstart = () => {
         isSpeaking = true;
         setStatus('speaking', '🔊 郎叔回覆中... (點擊反應爐可打斷)');
       };
 
-      utter.onend = () => {
-        if (done) done();
-      };
+      utter.onend = finish;
+      utter.onerror = finish;
 
-      utter.onerror = () => {
-        if (done) done();
-      };
+      // iOS 本機語音超時防呆（避免特定 iOS 版本不觸發 onend）
+      const maxDuration = Math.max(3000, text.length * 400);
+      setTimeout(finish, maxDuration);
 
       synth.speak(utter);
     }
 
     function onSpeakFinished(callback) {
+      clearTimeout(window._speechWatchdog);
       isSpeaking = false;
       accumulatedText = '';
       currentInterim = '';
@@ -1058,6 +1166,17 @@
     if (synth && synth.onvoiceschanged !== undefined) {
       synth.onvoiceschanged = () => synth.getVoices();
     }
+
+    // 檢查是否在 LINE 或社群 App 內建瀏覽器開啟
+    function checkInAppBrowser() {
+      const ua = navigator.userAgent || '';
+      const isInApp = /Line|FBAN|FBAV|Instagram|MicroMessenger/i.test(ua);
+      if (isInApp) {
+        const banner = document.getElementById('inAppBanner');
+        if (banner) banner.style.display = 'block';
+      }
+    }
+    checkInAppBrowser();
   </script>
 </body>
 </html>

@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>鋼鐵人賈維斯 (Jarvis HUD) - 陳河志的AI超級大腦</title>
+  <title>鋼鐵人賈維斯 (郎雄老匠人靈魂版) - 陳河志的AI超級大腦</title>
   <style>
     :root {
       --bg-dark: #070b14;
-      --panel-bg: rgba(14, 23, 42, 0.82);
+      --panel-bg: rgba(14, 23, 42, 0.85);
       --border-color: rgba(0, 242, 254, 0.28);
       --cyan-glow: #00f2fe;
       --blue-glow: #4facfe;
@@ -26,7 +26,7 @@
     }
 
     body {
-      background: radial-gradient(circle at 50% 20%, #111e38 0%, var(--bg-dark) 80%);
+      background: radial-gradient(circle at 50% 15%, #111e38 0%, var(--bg-dark) 85%);
       color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", Roboto, sans-serif;
       height: 100vh;
@@ -37,12 +37,12 @@
 
     /* 頂部導航列 */
     header {
-      padding: 14px 20px;
+      padding: 12px 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid var(--border-color);
-      background: rgba(7, 11, 20, 0.9);
+      background: rgba(7, 11, 20, 0.92);
       backdrop-filter: blur(12px);
       z-index: 10;
     }
@@ -54,22 +54,34 @@
     }
 
     .brand-icon {
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--cyan-glow), var(--blue-glow));
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 22px;
       box-shadow: 0 0 16px rgba(0, 242, 254, 0.5);
     }
 
     .brand-title {
-      font-size: 19px;
-      font-weight: 700;
+      font-size: 18px;
+      font-weight: 800;
       letter-spacing: 0.5px;
       color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-badge {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(251, 191, 36, 0.2);
+      color: var(--gold-glow);
+      border: 1px solid rgba(251, 191, 36, 0.4);
     }
 
     .brand-subtitle {
@@ -77,22 +89,32 @@
       color: var(--cyan-glow);
     }
 
-    .session-badge {
-      padding: 6px 14px;
+    .header-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .badge-btn {
+      padding: 6px 12px;
       border-radius: 20px;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 600;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       border: 1px solid rgba(0, 242, 254, 0.4);
       background: rgba(0, 242, 254, 0.08);
       cursor: pointer;
+      color: #e2e8f0;
+      transition: all 0.2s ease;
     }
-
-    .session-badge.master {
+    .badge-btn:hover {
+      background: rgba(0, 242, 254, 0.18);
+    }
+    .badge-btn.gold {
       border-color: rgba(251, 191, 36, 0.5);
-      background: rgba(251, 191, 36, 0.1);
+      background: rgba(251, 191, 36, 0.12);
       color: var(--gold-glow);
     }
 
@@ -103,13 +125,13 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px 16px 14px;
+      padding: 16px 16px 10px;
       position: relative;
     }
 
     .arc-reactor {
-      width: 140px;
-      height: 140px;
+      width: 136px;
+      height: 136px;
       border-radius: 50%;
       border: 2px dashed rgba(0, 242, 254, 0.4);
       position: relative;
@@ -123,21 +145,21 @@
     .arc-reactor::before {
       content: '';
       position: absolute;
-      width: 110px;
-      height: 110px;
+      width: 108px;
+      height: 108px;
       border-radius: 50%;
       border: 2px solid rgba(0, 242, 254, 0.6);
       box-shadow: 0 0 20px rgba(0, 242, 254, 0.25);
     }
 
     .core-btn {
-      width: 80px;
-      height: 80px;
+      width: 78px;
+      height: 78px;
       border-radius: 50%;
       background: radial-gradient(circle, #00f2fe 0%, #0369a1 80%);
       border: none;
       color: #fff;
-      font-size: 30px;
+      font-size: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -203,16 +225,16 @@
 
     /* 狀態提示橫幅 */
     .status-banner {
-      margin-top: 12px;
-      padding: 8px 20px;
+      margin-top: 10px;
+      padding: 7px 18px;
       border-radius: 24px;
-      font-size: 15px;
+      font-size: 14.5px;
       font-weight: 700;
       letter-spacing: 0.5px;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.88);
       border: 1px solid var(--border-color);
       box-shadow: 0 4px 15px rgba(0,0,0,0.3);
       transition: all 0.3s ease;
@@ -230,15 +252,15 @@
     .chat-container {
       flex: 1;
       overflow-y: auto;
-      padding: 16px 20px;
+      padding: 14px 18px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
       scroll-behavior: smooth;
     }
 
     .bubble {
-      max-width: 82%;
+      max-width: 84%;
       padding: 13px 18px;
       border-radius: 18px;
       font-size: 16px;
@@ -275,7 +297,7 @@
 
     /* 快捷提問按鈕 */
     .quick-bar {
-      padding: 8px 16px;
+      padding: 6px 16px;
       display: flex;
       gap: 8px;
       overflow-x: auto;
@@ -285,7 +307,7 @@
     .quick-bar::-webkit-scrollbar { display: none; }
 
     .quick-chip {
-      padding: 7px 14px;
+      padding: 6px 13px;
       border-radius: 20px;
       font-size: 13px;
       font-weight: 600;
@@ -303,8 +325,8 @@
 
     /* 底部輸入控制列 */
     footer {
-      padding: 12px 16px 20px;
-      background: rgba(7, 11, 20, 0.95);
+      padding: 10px 16px 18px;
+      background: rgba(7, 11, 20, 0.96);
       border-top: 1px solid rgba(0, 242, 254, 0.2);
       display: flex;
       gap: 10px;
@@ -313,7 +335,7 @@
 
     .input-box {
       flex: 1;
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.92);
       border: 1px solid rgba(0, 242, 254, 0.3);
       border-radius: 24px;
       padding: 12px 18px;
@@ -356,12 +378,20 @@
     <div class="brand">
       <div class="brand-icon">⚡</div>
       <div>
-        <div class="brand-title">JARVIS 鋼鐵人核心</div>
-        <div class="brand-subtitle">陳河志的AI超級大腦・流暢語音中樞</div>
+        <div class="brand-title">
+          JARVIS 賈維斯
+          <span class="brand-badge">郎雄靈魂版</span>
+        </div>
+        <div class="brand-subtitle">陳河志的AI超級大腦・老匠人中樞</div>
       </div>
     </div>
-    <div id="sessionBtn" class="session-badge master" onclick="toggleSession()">
-      👑 阿志長效記憶
+    <div class="header-controls">
+      <div id="voiceModeBtn" class="badge-btn gold" onclick="toggleVoiceEngine()" title="切換發聲模式">
+        🎙️ 郎雄・神經老聲
+      </div>
+      <div id="sessionBtn" class="badge-btn" onclick="toggleSession()">
+        👑 阿志長效記憶
+      </div>
     </div>
   </header>
 
@@ -372,13 +402,13 @@
     </div>
     <div id="statusBanner" class="status-banner" onclick="handleReactorClick()">
       <div id="statusDot" class="status-dot"></div>
-      <span id="statusText">點擊反應爐啟動賈維斯連續免手持對話</span>
+      <span id="statusText">點擊反應爐喚醒郎雄老匠人賈維斯</span>
     </div>
   </div>
 
   <!-- 快捷提問 -->
   <div class="quick-bar">
-    <div class="quick-chip" onclick="sendQuick('賈維斯，我戴著耳機，測試一下連線狀態')">🎧 測試連線</div>
+    <div class="quick-chip" onclick="sendQuick('賈維斯，我戴著耳機正在烘豆，測試一下連線狀態')">🎧 測試連線</div>
     <div class="quick-chip" onclick="sendQuick('今天門市有哪些重要事項與待辦？')">📅 今日行程</div>
     <div class="quick-chip" onclick="sendQuick('幫我介紹一下翔頂發財開運咖啡與伴手禮優勢')">☕ 咖啡伴手禮</div>
     <div class="quick-chip" onclick="sendQuick('客人問到胃脹氣與微循環，我該怎麼生活化引導？')">🌿 亞健康破冰</div>
@@ -387,11 +417,8 @@
   <!-- 對話紀錄區 -->
   <div id="chatBox" class="chat-container">
     <div class="bubble assistant">
-      志哥你好！專屬語音副手在線。<br>
-      戴上耳機、點擊中間反應爐，我們隨時用語音並肩作戰：<br>
-      1. <strong>告別口吃回音</strong>：回答一氣呵成，字字清晰流暢。<br>
-      2. <strong>回答完畢秒接聽</strong>：說完最後一字的同時，立刻自動無縫開麥聽你說。<br>
-      3. <strong>隨時手動插話</strong>：想隨時打斷我，輕碰一下反應爐立刻切換聆聽！
+      ……阿志，我在。<br>
+      火候抓緊點，心要定。有什麼事情，你開口，我聽著。
     </div>
   </div>
 
@@ -405,10 +432,16 @@
     // ===== 配置設定 =====
     const CHAT_WEBHOOK_URL = 'https://oeccafecf.zeabur.app/webhook/a440835f-893a-4b46-a5a0-c9fdd9b129e7/chat';
     
-    // 檢查 URL 參數
+    // 神經語音端點 (優先呼叫 Zeabur 部署端點，若同源則呼叫 /api/tts)
+    const NEURAL_TTS_URL = window.location.hostname.includes('zeabur') ? '/api/tts' : 'https://jarvis-oeccafe.zeabur.app/api/tts';
+
     const urlParams = new URLSearchParams(window.location.search);
     let isMaster = urlParams.get('user') === 'simon' || true;
     let currentSessionId = isMaster ? 'voice-user-simon-master' : ('voice-guest-' + Date.now());
+
+    // 發聲引擎模式：'neural' (微軟神經老聲-雲健) 或 'local' (本機降頻男聲)
+    let voiceEngine = 'neural'; 
+    let activeAudio = null; // 當前播放中的 HTML5 Audio
 
     let isJarvisActive = false;
     let recognition = null;
@@ -427,15 +460,31 @@
     const chatBox = document.getElementById('chatBox');
     const textInput = document.getElementById('textInput');
     const sessionBtn = document.getElementById('sessionBtn');
+    const voiceModeBtn = document.getElementById('voiceModeBtn');
+
+    // 切換語音引擎
+    function toggleVoiceEngine() {
+      if (voiceEngine === 'neural') {
+        voiceEngine = 'local';
+        voiceModeBtn.className = 'badge-btn';
+        voiceModeBtn.innerHTML = '🔊 郎叔・本地降頻';
+        appendBubble('system', '已切換為：本機零延遲降頻男中低音（音調 0.82，語速 0.88）');
+      } else {
+        voiceEngine = 'neural';
+        voiceModeBtn.className = 'badge-btn gold';
+        voiceModeBtn.innerHTML = '🎙️ 郎雄・神經老聲';
+        appendBubble('system', '已切換為：微軟極致老生神經原聲（滄桑深沉、老匠人質感）');
+      }
+    }
 
     // 更新 Session 顯示
     function updateSessionUI() {
       if (isMaster) {
-        sessionBtn.className = 'session-badge master';
+        sessionBtn.className = 'badge-btn gold';
         sessionBtn.innerHTML = '👑 阿志長效記憶';
         currentSessionId = 'voice-user-simon-master';
       } else {
-        sessionBtn.className = 'session-badge';
+        sessionBtn.className = 'badge-btn';
         sessionBtn.innerHTML = '☕ 門市訪客模式';
         currentSessionId = 'voice-guest-' + Date.now();
       }
@@ -475,7 +524,6 @@
       }
     }
 
-    // 氣泡加入
     function appendBubble(role, htmlText) {
       const b = document.createElement('div');
       b.className = 'bubble ' + role;
@@ -484,21 +532,18 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // 雙音調未來科技感音效
+    // 科技反饋音
     function playBeep(type = 'wake') {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         if (type === 'wake') {
-          // 開機雙音 (587Hz -> 880Hz)
-          playTone(ctx, 587, 0, 0.08);
-          playTone(ctx, 880, 0.08, 0.12);
-        } else if (type === 'thinking') {
-          // 收到音 (520Hz -> 659Hz)
-          playTone(ctx, 520, 0, 0.06);
-          playTone(ctx, 659, 0.06, 0.08);
-        } else if (type === 'stop') {
-          // 中止音
           playTone(ctx, 440, 0, 0.1);
+          playTone(ctx, 659, 0.08, 0.12);
+        } else if (type === 'thinking') {
+          playTone(ctx, 493, 0, 0.06);
+          playTone(ctx, 587, 0.06, 0.08);
+        } else if (type === 'stop') {
+          playTone(ctx, 392, 0, 0.1);
         }
       } catch (e) {}
     }
@@ -507,7 +552,7 @@
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.08, ctx.currentTime + delay);
+      gain.gain.setValueAtTime(0.06, ctx.currentTime + delay);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + dur);
       osc.connect(gain);
       gain.connect(ctx.destination);
@@ -530,15 +575,12 @@
 
       rec.onstart = () => {
         if (isJarvisActive && !isSpeaking && !isThinking) {
-          setStatus('listening', '● 賈維斯聆聽中... (請說話)');
+          setStatus('listening', '● 賈維斯聆聽中... (隨時說話)');
         }
       };
 
       rec.onresult = (event) => {
-        // 【關鍵防護】：若正在朗讀回覆中，忽略任何喇叭回音！
-        if (isSpeaking || isThinking) {
-          return;
-        }
+        if (isSpeaking || isThinking) return;
 
         let interim = '';
         let final = '';
@@ -555,7 +597,6 @@
           currentTranscript = candidate;
           statusText.innerText = '聽取中: ' + candidate;
 
-          // 【加速斷句機制】：偵測到語音後，設定 750ms 快速靜音計時器，不等瀏覽器慢吞吞的 1.5 秒
           clearTimeout(silenceTimer);
           silenceTimer = setTimeout(() => {
             if (currentTranscript && !isSpeaking && !isThinking) {
@@ -583,7 +624,6 @@
       };
 
       rec.onend = () => {
-        // 若賈維斯模式仍在且非說話/思考中，自動重啟保持待命
         if (isJarvisActive && !isSpeaking && !isThinking) {
           try { rec.start(); } catch (e) {}
         }
@@ -592,27 +632,31 @@
       return rec;
     }
 
-    // 點擊反應爐：若正在說話則「手動插話打斷」；否則切換開關
+    // 點擊反應爐：若正在發聲則「立即打斷」；否則切換開關
     function handleReactorClick() {
       if (isSpeaking) {
-        // 【核心打斷機制】：正在說話時點擊，秒級打斷！
-        if (synth && synth.speaking) {
-          synth.cancel();
-        }
-        isSpeaking = false;
-        playBeep('stop');
-        setStatus('interrupted', '🛑 已為你打斷回覆，切換聆聽...');
-        setTimeout(() => {
-          if (isJarvisActive) {
-            safeStartRecognition();
-          }
-        }, 300);
+        interruptSpeech();
       } else {
         toggleJarvisMode();
       }
     }
 
-    // 啟動 / 停止賈維斯模式
+    function interruptSpeech() {
+      if (activeAudio) {
+        activeAudio.pause();
+        activeAudio = null;
+      }
+      if (synth && synth.speaking) {
+        synth.cancel();
+      }
+      isSpeaking = false;
+      playBeep('stop');
+      setStatus('interrupted', '🛑 已為你打斷回覆，切換聆聽...');
+      setTimeout(() => {
+        if (isJarvisActive) safeStartRecognition();
+      }, 300);
+    }
+
     function toggleJarvisMode() {
       if (isJarvisActive) {
         stopJarvisMode();
@@ -622,9 +666,7 @@
     }
 
     function safeStartRecognition() {
-      if (!recognition) {
-        recognition = initSpeechRecognition();
-      }
+      if (!recognition) recognition = initSpeechRecognition();
       if (!recognition) return;
       try {
         recognition.start();
@@ -641,87 +683,149 @@
     function startJarvisMode() {
       isJarvisActive = true;
       playBeep('wake');
-      setStatus('listening', '● 專屬副手在線，志哥請說...');
+      setStatus('listening', '● 賈維斯在線，阿志請說...');
       safeStartRecognition();
-      speak('志哥請說，我在。');
+      speak('阿志，我在。你說，我聽著。');
     }
 
     function stopJarvisMode() {
       isJarvisActive = false;
       safeStopRecognition();
+      if (activeAudio) {
+        activeAudio.pause();
+        activeAudio = null;
+      }
       if (synth && synth.speaking) {
         synth.cancel();
       }
       isSpeaking = false;
       isThinking = false;
       clearTimeout(silenceTimer);
-      setStatus('idle', '點擊反應爐啟動賈維斯連續免手持對話');
+      setStatus('idle', '點擊反應爐喚醒郎雄老匠人賈維斯');
     }
 
-    // 語音朗讀 (TTS) - 100% 杜絕口吃回音
-    function speak(text, callback) {
+    // ===== 雙引擎語音朗讀 (TTS) =====
+    async function speak(text, callback) {
+      safeStopRecognition(); // 播放期間關閉麥克風，防回音結巴
+
+      const clean = text.replace(/[*#`_\[\]()]/g, '').replace(/https?:\/\/\S+/g, '').replace(/\n+/g, '，');
+
+      if (voiceEngine === 'neural') {
+        try {
+          await speakNeural(clean);
+          onSpeakFinished(callback);
+          return;
+        } catch (err) {
+          console.warn('神經語音呼叫失敗，無縫降級本機語音:', err.message);
+        }
+      }
+
+      // 降級或手動本機模式
+      speakLocal(clean, () => onSpeakFinished(callback));
+    }
+
+    // 引擎一：微軟神經老聲 (雲健 - 郎雄質感)
+    function speakNeural(text) {
+      return new Promise((resolve, reject) => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 6000);
+
+        fetch(NEURAL_TTS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, voice: 'zh-CN-YunjianNeural' }),
+          signal: controller.signal
+        })
+        .then(res => {
+          clearTimeout(timeout);
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.blob();
+        })
+        .then(blob => {
+          const audioUrl = URL.createObjectURL(blob);
+          if (activeAudio) activeAudio.pause();
+          activeAudio = new Audio(audioUrl);
+
+          activeAudio.onplay = () => {
+            isSpeaking = true;
+            setStatus('speaking', '🔊 郎叔回覆中... (點擊反應爐可打斷)');
+          };
+
+          activeAudio.onended = () => {
+            URL.revokeObjectURL(audioUrl);
+            activeAudio = null;
+            resolve();
+          };
+
+          activeAudio.onerror = (e) => {
+            activeAudio = null;
+            reject(e);
+          };
+
+          activeAudio.play().catch(reject);
+        })
+        .catch(reject);
+      });
+    }
+
+    // 引擎二：本機降頻男中低音 (音調 0.82，語速 0.88)
+    function speakLocal(text, done) {
       if (!synth) {
-        if (callback) callback();
+        if (done) done();
         return;
       }
       synth.cancel();
 
-      // 【徹底杜絕口吃關鍵】：說話期間暫時關閉麥克風辨識，防止吃到喇叭聲音自我打斷！
-      safeStopRecognition();
-
-      // 純文字淨化，去掉 markdown 符號與贅字
-      const clean = text.replace(/[*#`_\[\]()]/g, '').replace(/https?:\/\/\S+/g, '').replace(/\n+/g, '，');
-      const utter = new SpeechSynthesisUtterance(clean);
+      const utter = new SpeechSynthesisUtterance(text);
       utter.lang = 'zh-TW';
-      utter.rate = 1.12; // 稍快、更乾脆俐落
-      utter.pitch = 1.0;
+      utter.rate = 0.88; // 沉緩篤定
+      utter.pitch = 0.82; // 壓低音頻，胸腔共鳴
 
-      // 優先選取高品質台灣中文語音
+      // 優先選取成熟台灣男聲
       const voices = synth.getVoices();
-      const twVoice = voices.find(v => v.lang.includes('TW') || v.lang.includes('Hant') || v.name.includes('Yating') || v.name.includes('Meijia') || v.name.includes('Google 國語'));
-      if (twVoice) utter.voice = twVoice;
+      const twMaleVoice = voices.find(v => (v.lang.includes('TW') || v.lang.includes('zh')) && 
+        (v.name.includes('Male') || v.name.includes('男') || v.name.includes('Han') || v.name.includes('Siri 1') || v.name.includes('Yating')));
+      if (twMaleVoice) utter.voice = twMaleVoice;
 
       utter.onstart = () => {
         isSpeaking = true;
-        setStatus('speaking', '🔊 賈維斯回覆中... (點擊反應爐可隨時打斷)');
+        setStatus('speaking', '🔊 郎叔回覆中... (點擊反應爐可打斷)');
       };
 
       utter.onend = () => {
-        isSpeaking = false;
-        if (isJarvisActive) {
-          // 【無縫接續聆聽】：說完最後一字的同一毫秒，自動重開麥克風！
-          setStatus('listening', '● 賈維斯聆聽中... (請說話)');
-          safeStartRecognition();
-        } else {
-          setStatus('idle', '已待命');
-        }
-        if (callback) callback();
+        if (done) done();
       };
 
       utter.onerror = () => {
-        isSpeaking = false;
-        if (isJarvisActive) {
-          safeStartRecognition();
-        }
-        if (callback) callback();
+        if (done) done();
       };
 
       synth.speak(utter);
+    }
+
+    function onSpeakFinished(callback) {
+      isSpeaking = false;
+      if (isJarvisActive) {
+        setStatus('listening', '● 賈維斯聆聽中... (請說話)');
+        safeStartRecognition(); // 說完毫秒級自動開麥
+      } else {
+        setStatus('idle', '已待命');
+      }
+      if (callback) callback();
     }
 
     // 處理使用者訊息 (送往 WF-07 大腦)
     async function handleUserQuery(msg) {
       if (!msg || msg.trim() === '') return;
       
-      // 停止接收，避免重複觸發
       clearTimeout(silenceTimer);
       currentTranscript = '';
       safeStopRecognition();
 
       appendBubble('user', msg);
       isThinking = true;
-      playBeep('thinking'); // 收到立即反饋音效，消除真空等待感
-      setStatus('thinking', '⚡ 賈維斯大腦檢索思考中...');
+      playBeep('thinking');
+      setStatus('thinking', '⚡ 郎叔大腦思考中...');
 
       try {
         const response = await fetch(CHAT_WEBHOOK_URL, {
@@ -735,7 +839,7 @@
         });
 
         const data = await response.json();
-        const reply = data.output || data.text || '已收到，大腦暫時無法產出回覆。';
+        const reply = data.output || data.text || '……收到。';
         
         isThinking = false;
         appendBubble('assistant', reply);
@@ -744,13 +848,12 @@
       } catch (err) {
         console.error('Fetch WF-07 Error:', err);
         isThinking = false;
-        const errText = '連線大腦伺服器逾時，請確認網路或 Zeabur 狀態。';
+        const errText = '……連線大腦逾時。阿志，確認一下網路。';
         appendBubble('assistant', errText);
         speak(errText);
       }
     }
 
-    // 手動送出
     function sendManual() {
       const val = textInput.value.trim();
       if (!val) return;

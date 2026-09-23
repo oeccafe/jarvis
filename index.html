@@ -924,6 +924,7 @@
     const CARD_SCANNER_URL = 'https://oeccafecf.zeabur.app/form/21cd8976-a4bd-490c-8be9-d769aad02fd8';
 
     function openCardScannerModal() {
+      safeStopRecognition(); // 打開相機表單時暫停麥克風，防止環境音干擾
       const modal = document.getElementById('cardScannerModal');
       const iframe = document.getElementById('cardScannerIframe');
       if (modal && iframe) {
@@ -1096,6 +1097,12 @@
       safeStopRecognition();
 
       appendBubble('user', msg);
+
+      // 若指令提及「名片」，立即毫秒級彈出拍照視窗，不必等網路往返！
+      if (msg.includes('名片')) {
+        setTimeout(() => { openCardScannerModal(); }, 200);
+      }
+
       isThinking = true;
       playBeep('thinking');
       setStatus('thinking', '⚡ 賈維斯思考中...');
@@ -1123,19 +1130,23 @@
         let bubbleHtml = cleanReply.replace(/\n/g, '<br>');
         if (isCardScanner) {
           bubbleHtml += `
-            <div style="margin-top:12px; padding:10px 14px; border-radius:8px; background:rgba(217,119,6,0.15); border:1px solid rgba(251,191,36,0.5); display:flex; gap:10px; align-items:center;">
-              <span style="font-size:1.4rem;">📇</span>
-              <div style="flex:1;">
-                <div style="font-weight:bold; color:var(--gold-glow); font-size:0.95rem;">AI 名片拍立得已就緒</div>
-                <div style="font-size:0.8rem; color:#d1d5db;">WF-CardScanner 拍照建檔與喚醒漏斗</div>
+            <div style="margin-top:12px; padding:12px 14px; border-radius:10px; background:rgba(217,119,6,0.18); border:1px solid rgba(251,191,36,0.5); display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:1.4rem;">📇</span>
+                <div style="flex:1;">
+                  <div style="font-weight:bold; color:var(--gold-glow); font-size:0.95rem;">AI 名片拍立得已就緒</div>
+                  <div style="font-size:0.8rem; color:#d1d5db;">WF-CardScanner 拍照辨識與喚醒漏斗</div>
+                </div>
               </div>
-              <button onclick="openCardScannerModal()" style="padding:6px 12px; background:#d97706; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:0.85rem; box-shadow:0 0 10px rgba(217,119,6,0.4);">打開視窗</button>
-              <button onclick="openCardScannerExternal()" style="padding:6px 10px; background:rgba(0,242,254,0.1); color:var(--cyan-glow); border:1px solid rgba(0,242,254,0.3); border-radius:6px; cursor:pointer; font-size:0.85rem;" title="在新分頁全螢幕開啟">↗</button>
+              <div style="display:flex; gap:8px; margin-top:4px;">
+                <button onclick="openCardScannerModal()" style="flex:1; padding:8px 12px; background:#d97706; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:0.9rem; box-shadow:0 0 10px rgba(217,119,6,0.4);">📷 彈出拍照視窗</button>
+                <button onclick="openCardScannerExternal()" style="padding:8px 14px; background:rgba(0,242,254,0.15); color:var(--cyan-glow); border:1px solid rgba(0,242,254,0.4); border-radius:6px; cursor:pointer; font-size:0.9rem; font-weight:bold;" title="在新分頁全螢幕開啟">↗ 全螢幕相機</button>
+              </div>
             </div>
           `;
           setTimeout(() => {
             openCardScannerModal();
-          }, 600);
+          }, 300);
         }
 
         appendBubble('assistant', bubbleHtml);

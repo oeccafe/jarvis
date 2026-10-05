@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>鋼鐵人賈維斯 (老匠人版) - 陳河志的AI超級大腦</title>
+  <title>CHOU HUD - Solo Operator Brain</title>
   <style>
     :root {
       --bg-dark: #070b14;
@@ -118,7 +118,7 @@
       color: var(--gold-glow);
     }
 
-    /* 中央賈維斯核心區 (HUD ARC REACTOR) */
+    /* 中央核心區 (HUD ARC REACTOR) */
     .reactor-container {
       flex: 0 0 auto;
       display: flex;
@@ -496,15 +496,15 @@
       <div class="brand-icon">⚡</div>
       <div>
         <div class="brand-title">
-          JARVIS 賈維斯
-          <span class="brand-badge">老匠人隨身版</span>
+          CHOU
+          <span class="brand-badge">Solo Operator HUD</span>
         </div>
-        <div class="brand-subtitle">陳河志的AI超級大腦・沉穩耐心傾聽</div>
+        <div class="brand-subtitle">Solo Operator Audio HUD</div>
       </div>
     </div>
     <div class="header-controls">
       <div id="voiceModeBtn" class="badge-btn gold" onclick="toggleVoiceEngine()" title="切換發聲模式">
-        🎙️ 沉穩・神經原聲
+        ⚡ 極速原聲 (0ms)
       </div>
       <div id="sessionBtn" class="badge-btn" onclick="toggleSession()">
         👑 阿志長效記憶
@@ -519,15 +519,15 @@
     </div>
     <div id="statusBanner" class="status-banner" onclick="handleReactorClick()">
       <div id="statusDot" class="status-dot"></div>
-      <span id="statusText">點擊反應爐喚醒賈維斯</span>
+      <span id="statusText">點擊反應爐喚醒 CHOU</span>
     </div>
   </div>
 
   <!-- 快捷提問 -->
   <div class="quick-bar">
     <div class="quick-chip gold" onclick="sendQuick('呼叫名片拍立得')">📇 名片拍立得</div>
-    <div class="quick-chip" onclick="sendQuick('賈維斯，今天適逢什麼節氣？依當前時令，吧檯與健康該如何順應調理？')">🍂 今日節氣與生活物產</div>
-    <div class="quick-chip" onclick="sendQuick('賈維斯，我戴著耳機正在烘豆，測試一下連線狀態')">🎧 測試連線</div>
+    <div class="quick-chip" onclick="sendQuick('今天適逢什麼節氣？依當前時令，吧檯與健康該如何順應調理？')">🍂 今日節氣與生活物產</div>
+    <div class="quick-chip" onclick="sendQuick('我戴著耳機正在烘豆，測試一下連線狀態')">🎧 測試連線</div>
     <div class="quick-chip" onclick="sendQuick('今天門市有哪些重要事項與待辦？')">📅 今日行程</div>
     <div class="quick-chip" onclick="sendQuick('幫我介紹一下翔頂發財開運咖啡與伴手禮優勢')">☕ 咖啡伴手禮</div>
     <div class="quick-chip" onclick="sendQuick('客人問到胃脹氣與微循環，我該怎麼生活化引導？')">🌿 亞健康破冰</div>
@@ -562,7 +562,7 @@
           <button class="scanner-btn-external" onclick="openCardScannerExternal()" title="在新分頁開啟相機全螢幕">
             ↗ 新分頁
           </button>
-          <button class="scanner-btn-close" onclick="closeCardScannerModal()" title="關閉返回賈維斯">
+          <button class="scanner-btn-close" onclick="closeCardScannerModal()" title="關閉返回 CHOU">
             ✕ 關閉
           </button>
         </div>
@@ -582,7 +582,7 @@
     let isMaster = urlParams.get('user') === 'simon' || true;
     let currentSessionId = isMaster ? 'voice-user-simon-master' : ('voice-guest-' + Date.now());
 
-    let voiceEngine = 'neural'; 
+    let voiceEngine = 'local'; 
     let activeAudio = null;
 
     let isJarvisActive = false;
@@ -608,16 +608,16 @@
     const voiceModeBtn = document.getElementById('voiceModeBtn');
 
     function toggleVoiceEngine() {
-      if (voiceEngine === 'neural') {
-        voiceEngine = 'local';
-        voiceModeBtn.className = 'badge-btn';
-        voiceModeBtn.innerHTML = '🔊 本機・降頻男聲';
-        appendBubble('system', '已切換為：本機零延遲降頻男中低音（音調 0.82，語速 0.88）');
-      } else {
+      if (voiceEngine === 'local') {
         voiceEngine = 'neural';
-        voiceModeBtn.className = 'badge-btn gold';
+        voiceModeBtn.className = 'badge-btn';
         voiceModeBtn.innerHTML = '🎙️ 沉穩・神經原聲';
-        appendBubble('system', '已切換為：微軟極致老生神經原聲（滄桑深沉、老匠人質感）');
+        appendBubble('system', '已切換為：神經原聲（滄桑深沉，需雲端轉檔 1~2 秒）');
+      } else {
+        voiceEngine = 'local';
+        voiceModeBtn.className = 'badge-btn gold';
+        voiceModeBtn.innerHTML = '⚡ 極速原聲 (0ms)';
+        appendBubble('system', '已切換為：極速原聲（本機 0ms 零延遲直出）');
       }
     }
 
@@ -768,7 +768,7 @@
 
       rec.onstart = () => {
         if (isJarvisActive && !isSpeaking && !isThinking) {
-          setStatus('listening', '● 賈維斯聆聽中... (請慢聊，我耐心聽著)');
+          setStatus('listening', '● CHOU 聆聽中...');
         }
       };
 
@@ -789,7 +789,7 @@
         if (fullDisplay) {
           statusText.innerText = '聽取中 (等您說完...): ' + fullDisplay;
 
-          // 【關鍵耐心等待機制】：給阿志 2.0 秒充足的換氣與思考時間，絕對不搶話！
+          // 【極速反應機制】：停頓 750ms 自動送出，不再死等！
           clearTimeout(silenceTimer);
           silenceTimer = setTimeout(() => {
             const finalQuery = (accumulatedText + ' ' + currentInterim).trim();
@@ -798,7 +798,7 @@
               currentInterim = '';
               handleUserQuery(finalQuery);
             }
-          }, 2000);
+          }, 750);
         }
       };
 
@@ -876,7 +876,7 @@
         if (isJarvisActive && !isSpeaking && !isThinking) {
           try {
             recognition.start();
-            setStatus('listening', '● 賈維斯聆聽中... (請慢聊，我耐心聽著)');
+            setStatus('listening', '● CHOU 聆聽中...');
           } catch (e) {
             console.warn('safeStartRecognition notice:', e.message);
           }
@@ -896,7 +896,7 @@
       accumulatedText = '';
       currentInterim = '';
       playBeep('wake');
-      setStatus('listening', '● 賈維斯在線，阿志請說...');
+      setStatus('listening', '● CHOU 在線，請說...');
       safeStartRecognition();
       speak('阿志，我在。');
     }
@@ -917,7 +917,7 @@
       isThinking = false;
       clearTimeout(silenceTimer);
       clearTimeout(window._recRestartTimer);
-      setStatus('idle', '點擊反應爐喚醒賈維斯');
+      setStatus('idle', '點擊反應爐喚醒 CHOU');
     }
 
     // ===== 名片拍立得 (Card Scanner) 浮動視窗控制 =====
@@ -1004,7 +1004,7 @@
 
           audio.onplay = () => {
             isSpeaking = true;
-            setStatus('speaking', '🔊 賈維斯回覆中... (點擊反應爐可打斷)');
+            setStatus('speaking', '🔊 CHOU 回覆中... (點擊反應爐可打斷)');
           };
 
           audio.onended = () => {
@@ -1040,8 +1040,8 @@
 
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = 'zh-TW';
-      utter.rate = 0.88; 
-      utter.pitch = 0.82; 
+      utter.rate = 1.05; 
+      utter.pitch = 0.95; 
 
       const voices = synth.getVoices();
       const twMaleVoice = voices.find(v => (v.lang.includes('TW') || v.lang.includes('zh')) && 
@@ -1060,7 +1060,7 @@
 
       utter.onstart = () => {
         isSpeaking = true;
-        setStatus('speaking', '🔊 賈維斯回覆中... (點擊反應爐可打斷)');
+        setStatus('speaking', '🔊 CHOU 回覆中... (點擊反應爐可打斷)');
       };
 
       utter.onend = finish;
@@ -1079,7 +1079,7 @@
       accumulatedText = '';
       currentInterim = '';
       if (isJarvisActive) {
-        setStatus('listening', '● 賈維斯聆聽中... (請慢聊，我耐心聽著)');
+        setStatus('listening', '● CHOU 聆聽中...');
         safeStartRecognition(); // 說完毫秒級自動開麥
       } else {
         setStatus('idle', '已待命');
@@ -1105,7 +1105,7 @@
 
       isThinking = true;
       playBeep('thinking');
-      setStatus('thinking', '⚡ 賈維斯思考中...');
+      setStatus('thinking', '⚡ CHOU 思考中...');
 
       try {
         const response = await fetch(CHAT_WEBHOOK_URL, {

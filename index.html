@@ -525,7 +525,8 @@
 
   <!-- 快捷提問 -->
   <div class="quick-bar">
-    <div class="quick-chip gold" onclick="sendQuick('呼叫名片拍立得')">📇 名片拍立得</div>
+    <div class="quick-chip gold" onclick="sendQuick('對外工具清單')">🛠️ 對外工具清單</div>
+    <div class="quick-chip" onclick="sendQuick('呼叫名片拍立得')">📇 名片拍立得</div>
     <div class="quick-chip" onclick="sendQuick('今天適逢什麼節氣？依當前時令，吧檯與健康該如何順應調理？')">🍂 今日節氣與生活物產</div>
     <div class="quick-chip" onclick="sendQuick('我戴著耳機正在烘豆，測試一下連線狀態')">🎧 測試連線</div>
     <div class="quick-chip" onclick="sendQuick('今天門市有哪些重要事項與待辦？')">📅 今日行程</div>
@@ -1097,6 +1098,70 @@
       safeStopRecognition();
 
       appendBubble('user', msg);
+
+      // 若指令提及「工具清單」或「對外工具」，直接本地秒速直出可點擊卡片！
+      if (msg.includes('工具清單') || msg.includes('對外工具') || msg.includes('一人戰隊')) {
+        const toolsHtml = `
+          <div style="margin-top:6px; padding:12px; border-radius:12px; background:rgba(15,23,42,0.95); border:1px solid rgba(0,242,254,0.4); display:flex; flex-direction:column; gap:10px; font-size:0.92rem;">
+            <div style="font-weight:bold; color:var(--cyan-glow); font-size:1.02rem; border-bottom:1px solid rgba(0,242,254,0.25); padding-bottom:6px; display:flex; align-items:center; gap:6px;">
+              <span>🎖️</span><span>全方位對外工具清單 (點擊直接開啟)</span>
+            </div>
+            
+            <a href="https://oeccafecf.zeabur.app/form/photo-post?openExternalBrowser=1" target="_blank" style="text-decoration:none; color:#f1f5f9; display:block; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:8px; border-left:3px solid var(--cyan-glow);">
+              <div style="font-weight:bold; color:#38bdf8;">1. 【SF-14 / WF-14】相片拍立得 社群貼文 ↗</div>
+              <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">拍照上傳，AI 拆解視覺元素生成社群母稿與短影音分鏡。</div>
+            </a>
+
+            <a href="https://oeccafecf.zeabur.app/form/21cd8976-a4bd-490c-8be9-d769aad02fd8?openExternalBrowser=1" target="_blank" style="text-decoration:none; color:#f1f5f9; display:block; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:8px; border-left:3px solid var(--gold-glow);">
+              <div style="font-weight:bold; color:#fbbf24;">2. 【SF-13 / WF-13】名片拍立得 ↗</div>
+              <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">名片拍照 10 秒自動建檔試算表，推播審核並串聯 Email 漏斗。</div>
+            </a>
+
+            <a href="https://oeccafecf.zeabur.app/form/8d458ee9-69cb-4bf3-878f-637231b134c8?openExternalBrowser=1" target="_blank" style="text-decoration:none; color:#f1f5f9; display:block; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:8px; border-left:3px solid #a855f7;">
+              <div style="font-weight:bold; color:#c084fc;">3. 【SF-17 / WF-15】文檔菜單拍立得 ↗</div>
+              <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">手寫草稿、紅字劃線修訂拍照，AI 自動排版成標準 Word/Excel/PDF。</div>
+            </a>
+
+            <a href="https://oeccafecf.zeabur.app/webhook/social-draft?openExternalBrowser=1" target="_blank" style="text-decoration:none; color:#f1f5f9; display:block; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:8px; border-left:3px solid var(--blue-glow);">
+              <div style="font-weight:bold; color:#60a5fa;">4. 【GF-01B / WF-01】AI 今日社群草稿工作台 ↗</div>
+              <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">每日發文審核中樞，輸密碼 12340 一鍵同步 FB/IG/TG。</div>
+            </a>
+
+            <a href="https://oeccafecf.zeabur.app/form/2c0d9d7d-71f2-4fc6-b783-2ac72eb94896?openExternalBrowser=1" target="_blank" style="text-decoration:none; color:#f1f5f9; display:block; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:8px; border-left:3px solid #06b6d4;">
+              <div style="font-weight:bold; color:#22d3ee;">5. 【GF-01 / WF-01】一鍵多平台發文表單 ↗</div>
+              <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">手動填寫空白貼文並上傳圖片，一鍵同步多平台。</div>
+            </a>
+
+            <a href="https://oeccafecf.zeabur.app/webhook/store-portal?openExternalBrowser=1" target="_blank" style="text-decoration:none; color:#f1f5f9; display:block; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:8px; border-left:3px solid #10b981;">
+              <div style="font-weight:bold; color:#34d399;">6. 【GF-14 / WF-34】門市一體化作業小副手 ↗</div>
+              <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">雙門市專屬作業入口，整合文仁店/新瓦屋切換、外帶開單。</div>
+            </a>
+
+            <a href="https://oeccafe.github.io/jarvis/" target="_blank" style="text-decoration:none; color:#f1f5f9; display:block; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:8px; border-left:3px solid #eab308;">
+              <div style="font-weight:bold; color:#facc15;">7. 【GF-06 / WF-07】CHOU 語音隨身智囊 (HUD) ↗</div>
+              <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">免手持連續語音大腦，極速 0ms 本機發聲，烘豆沖煮時隨身對話。</div>
+            </a>
+
+            <a href="https://oeccafecf.zeabur.app/form/calendar-booking?openExternalBrowser=1" target="_blank" style="text-decoration:none; color:#f1f5f9; display:block; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:8px; border-left:3px solid #ec4899;">
+              <div style="font-weight:bold; color:#f472b6;">8. 【GF-05 / WF-10】咖啡品飲與課程活動預約頁 ↗</div>
+              <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">提供顧客線上預約品飲會、手沖小班課，自動同步 Google 日曆。</div>
+            </a>
+
+            <a href="https://oeccafecf.zeabur.app/webhook/sdc-monthly-report?openExternalBrowser=1" target="_blank" style="text-decoration:none; color:#f1f5f9; display:block; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:8px; border-left:3px solid #f97316;">
+              <div style="font-weight:bold; color:#fb923c;">9. 【GF-15 / WF-SDC】文仁店營運月報提報表單 ↗</div>
+              <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">文仁店每月營運數據提報頁面，提交後更新總帳並 LINE 推播。</div>
+            </a>
+
+            <a href="https://myship.7-11.com.tw/general/detail/GM2511148315976" target="_blank" style="text-decoration:none; color:#f1f5f9; display:block; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:8px; border-left:3px solid #ef4444;">
+              <div style="font-weight:bold; color:#f87171;">10. 【GF-10 / SF-20】7-11 賣貨便線上選物商店 ↗</div>
+              <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">翔頂咖啡官方線上賣場，提供顧客常溫熟豆、節慶伴手禮下單。</div>
+            </a>
+          </div>
+        `;
+        appendBubble('assistant', toolsHtml);
+        speak('阿志，對外工具清單已為你整理好，點擊畫面上任何一個項目都能直接開啟。');
+        return;
+      }
 
       // 若指令提及「名片」，立即毫秒級彈出拍照視窗，不必等網路往返！
       if (msg.includes('名片')) {

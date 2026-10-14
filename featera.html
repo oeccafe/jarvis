@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🌿 芙瑞納 × 翔頂咖啡 促單成交互動神器（夥伴專用版）</title>
+  <!-- 公共相容 Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Apple Touch Icon 與 PWA 支援 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Featera促單神器">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab-active {
+      border-bottom: 3px solid #059669;
+      color: #059669;
+      font-weight: 700;
+    }
+    input[type=range] {
+      accent-color: #059669;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen pb-16">
+
+  <!-- 頂部手機主畫面捷徑提示（可關閉） -->
+  <div id="pwa-tip" class="bg-amber-500 text-slate-950 text-xs px-4 py-2 flex justify-between items-center shadow-inner">
+    <div class="flex items-center gap-1.5 font-medium">
+      <span>📲</span>
+      <span><strong>手機專屬小技巧：</strong>點瀏覽器「分享」➔「加入主畫面」，即可像 App 一樣秒開使用！</span>
+    </div>
+    <button onclick="document.getElementById('pwa-tip').style.display='none'" class="text-slate-900 font-bold ml-2 px-1 text-sm">✕</button>
+  </div>
+
+  <!-- 頂部導航頭部 -->
+  <header class="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-4xl mx-auto px-4 py-3.5 flex justify-between items-center gap-2">
+      <div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-xl">🌿☕</span>
+          <h1 class="text-lg md:text-xl font-bold tracking-tight">Featera × 翔頂咖啡 促單神器</h1>
+        </div>
+        <p class="text-emerald-200 text-[11px] md:text-xs">夥伴隨身專用版 ｜ 買咖啡送促單 ｜ 算盤話術一鍵查</p>
+      </div>
+      <div class="flex flex-col items-end gap-1">
+        <span class="bg-emerald-700/90 text-emerald-100 text-[11px] px-2 py-0.5 rounded-full font-mono">v1.1 (2026.10.14)</span>
+        <span class="bg-amber-400 text-slate-950 text-[10px] px-2 py-0.5 rounded-full font-bold">阿志親製・已同步</span>
+      </div>
+    </div>
+
+    <!-- 頁籤導航 -->
+    <div class="max-w-4xl mx-auto px-2 flex border-t border-emerald-700/60 overflow-x-auto text-xs md:text-sm no-scrollbar">
+      <button onclick="switchTab('calc')" id="tab-btn-calc" class="tab-btn px-3.5 py-2.5 font-medium whitespace-nowrap text-white tab-active">🧮 方案與算盤</button>
+      <button onclick="switchTab('script')" id="tab-btn-script" class="tab-btn px-3.5 py-2.5 font-medium whitespace-nowrap text-emerald-200 hover:text-white">🗣️ 智能話術生成</button>
+      <button onclick="switchTab('objection')" id="tab-btn-objection" class="tab-btn px-3.5 py-2.5 font-medium whitespace-nowrap text-emerald-200 hover:text-white">💥 4秒拆彈小抄</button>
+      <button onclick="switchTab('roleplay')" id="tab-btn-roleplay" class="tab-btn px-3.5 py-2.5 font-medium whitespace-nowrap text-emerald-200 hover:text-white">📋 5分鐘檢核</button>
+      <button onclick="switchTab('order')" id="tab-btn-order" class="tab-btn px-3.5 py-2.5 font-medium whitespace-nowrap text-emerald-200 hover:text-white">📦 報單給阿志</button>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-3.5 md:px-4 mt-4 space-y-4">
+
+    <!-- 模組一：方案與利潤精算機 -->
+    <section id="section-calc" class="tab-content block space-y-4">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-4">
+          <h2 class="text-base md:text-lg font-bold text-slate-900 flex items-center gap-1.5">
+            <span class="text-emerald-600">■</span> 方案選擇與咖啡贈品配置
+          </h2>
+          <span class="text-[11px] text-slate-500">自動精算三方利益</span>
+        </div>
+
+        <!-- 方案快捷切換 -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4">
+          <button onclick="selectPlan('A')" id="plan-btn-A" class="plan-btn p-3 border-2 border-emerald-600 bg-emerald-50/60 rounded-xl text-left transition relative">
+            <span class="absolute top-2 right-2 bg-emerald-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">主流首選</span>
+            <div class="font-bold text-slate-900 text-sm">A 方案（買 6 送 1）</div>
+            <div class="text-emerald-700 font-extrabold text-base mt-0.5">$37,680</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">送 6 份得獎咖啡 ｜ 7 個月調理</div>
+          </button>
+
+          <button onclick="selectPlan('B')" id="plan-btn-B" class="plan-btn p-3 border border-slate-200 bg-white hover:border-emerald-400 rounded-xl text-left transition">
+            <div class="font-bold text-slate-900 text-sm">B 方案（買 18 送 4）</div>
+            <div class="text-emerald-700 font-extrabold text-base mt-0.5">$95,520</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">送 18 份得獎咖啡 ｜ 全家共享</div>
+          </button>
+
+          <button onclick="selectPlan('single')" id="plan-btn-single" class="plan-btn p-3 border border-slate-200 bg-white hover:border-emerald-400 rounded-xl text-left transition">
+            <div class="font-bold text-slate-900 text-sm">單套體驗組（1 個月）</div>
+            <div class="text-emerald-700 font-extrabold text-base mt-0.5">$4,820</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">送 1 份得獎咖啡 ｜ 試喝破冰</div>
+          </button>
+        </div>
+
+        <!-- 咖啡配置滑桿 / 輸入 -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 mb-4">
+          <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-1 mb-2.5">
+            <div class="text-xs md:text-sm font-bold text-slate-800">
+              加碼咖啡贈品分配（共送 <span id="total-gifts-needed" class="text-emerald-600 text-base font-extrabold">6</span> 份得獎好禮）
+            </div>
+            <div class="text-[11px] text-slate-500">
+              手沖豆原價 $350 (成本$280) ｜ 耳掛原價 $300 (成本$240)
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+              <div class="flex justify-between items-center text-xs md:text-sm font-semibold mb-1.5">
+                <span>☕ 半磅無名小卒手沖豆</span>
+                <span class="text-emerald-700 font-bold" id="label-beans-count">3 包 (1.5 磅)</span>
+              </div>
+              <input type="range" id="range-beans" min="0" max="6" value="3" oninput="updateGiftsFromBeans(this.value)" class="w-full">
+            </div>
+
+            <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+              <div class="flex justify-between items-center text-xs md:text-sm font-semibold mb-1.5">
+                <span>📦 十入經典曼巴耳掛</span>
+                <span class="text-emerald-700 font-bold" id="label-drip-count">3 盒 (30 包)</span>
+              </div>
+              <input type="range" id="range-drip" min="0" max="6" value="3" oninput="updateGiftsFromDrip(this.value)" class="w-full">
+            </div>
+          </div>
+        </div>
+
+        <!-- 即時精算儀表板（三方利益） -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <!-- 客戶端 -->
+          <div class="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/80 p-3.5 rounded-xl">
+            <div class="flex items-center gap-1.5 text-amber-900 font-bold text-xs md:text-sm mb-2">
+              <span>🎁</span> 客戶實質感受（超值）
+            </div>
+            <div class="space-y-1.5 text-xs text-amber-950">
+              <div class="flex justify-between">
+                <span>產品總量：</span>
+                <span class="font-bold" id="client-sets">6 + 1 = 7 套</span>
+              </div>
+              <div class="flex justify-between">
+                <span>每日均攤：</span>
+                <span class="font-extrabold text-amber-900 text-sm" id="client-daily">$179 / 天</span>
+              </div>
+              <div class="flex justify-between">
+                <span>贈品市價：</span>
+                <span class="font-bold text-emerald-700" id="client-coffee-val">$1,950 元</span>
+              </div>
+            </div>
+            <div class="mt-2.5 text-[11px] bg-amber-100/70 p-1.5 rounded text-amber-900 leading-tight">
+              💡 說服核心：每天一杯星巴克銅板價，額外抱走兩千元得獎咖啡！
+            </div>
+          </div>
+
+          <!-- 夥伴端（你） -->
+          <div class="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-300 p-3.5 rounded-xl shadow-xs">
+            <div class="flex items-center gap-1.5 text-emerald-900 font-bold text-xs md:text-sm mb-2">
+              <span>🤝</span> 你的實賺純利（算盤）
+            </div>
+            <div class="space-y-1.5 text-xs text-emerald-950">
+              <div class="flex justify-between">
+                <span>官方推薦獎金：</span>
+                <span class="font-bold" id="partner-reward">$7,680 元</span>
+              </div>
+              <div class="flex justify-between">
+                <span>自費咖啡支出：</span>
+                <span class="text-rose-600 font-bold" id="partner-cost">- $1,560 元</span>
+              </div>
+              <div class="flex justify-between border-t border-emerald-200/80 pt-1">
+                <span class="font-bold">落袋現金純利：</span>
+                <span class="font-extrabold text-emerald-700 text-base" id="partner-profit">$6,120 元</span>
+              </div>
+            </div>
+            <div class="mt-2.5 text-[11px] bg-emerald-100/80 p-1.5 rounded text-emerald-900 font-bold leading-tight">
+              🚀 戰略回報：拿獎金零頭做足人情，穩穩落袋 6,000+ 純利！
+            </div>
+          </div>
+
+          <!-- 阿志端 -->
+          <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
+            <div class="flex items-center gap-1.5 text-slate-700 font-bold text-xs md:text-sm mb-2">
+              <span>☕</span> 翔頂咖啡（阿志支援）
+            </div>
+            <div class="space-y-1.5 text-xs text-slate-700">
+              <div class="flex justify-between">
+                <span>出貨份數：</span>
+                <span class="font-bold" id="owner-shipment">6 份</span>
+              </div>
+              <div class="flex justify-between">
+                <span>8折支持價實收：</span>
+                <span class="font-bold" id="owner-income">$1,560 元</span>
+              </div>
+              <div class="flex justify-between">
+                <span>售後守護：</span>
+                <span class="text-emerald-700 font-bold">線上親自解答風味</span>
+              </div>
+            </div>
+            <div class="mt-2.5 text-[11px] bg-white p-1.5 rounded border border-slate-200/60 text-slate-600 leading-tight">
+              🤝 阿志親自新鮮溫控烘焙，幫你顧好客戶每一杯風味！
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 模組二：智能話術生成器 -->
+    <section id="section-script" class="tab-content hidden space-y-4">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-4">
+          <h2 class="text-base md:text-lg font-bold text-slate-900 flex items-center gap-1.5">
+            <span class="text-emerald-600">■</span> 智能話術生成器 ＆ 一鍵複製
+          </h2>
+          <span class="text-[11px] text-slate-500">填入姓名，立刻可用</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">客戶稱謂 / 姓名：</label>
+            <input type="text" id="input-client-name" value="王大哥" oninput="regenerateScripts()" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">溝通場景模式：</label>
+            <select id="select-tone" onchange="regenerateScripts()" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="line">📱 LINE 私訊促單版（含賣貨便連結）</option>
+              <option value="inperson">🎯 當面 / 電話一對一臨門逼單版</option>
+              <option value="casual">🌿 生活日常聊天破冰版</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="relative mt-2">
+          <div class="flex justify-between items-center mb-1.5">
+            <span class="text-xs font-semibold text-slate-600" id="script-type-label">生成結果：</span>
+            <button onclick="copyGeneratedScript()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow-xs transition">
+              <span id="copy-icon">📋</span> <span id="copy-text">一鍵複製話術</span>
+            </button>
+          </div>
+          <textarea id="script-output" rows="11" readonly class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-xs md:text-sm text-slate-800 leading-relaxed font-sans focus:outline-none"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- 模組三：4秒異議拆彈小抄 -->
+    <section id="section-objection" class="tab-content hidden space-y-3">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6">
+        <div class="border-b border-slate-100 pb-2.5 mb-3">
+          <h2 class="text-base md:text-lg font-bold text-slate-900 flex items-center gap-1.5">
+            <span class="text-emerald-600">■</span> 4 秒異議拆彈模擬器
+          </h2>
+          <p class="text-[11px] text-slate-500 mt-0.5">點擊客戶最常見的 4 大猶豫，立刻展開 3 秒化解小抄</p>
+        </div>
+
+        <div class="space-y-2.5">
+          <!-- 異議 1 -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+            <button onclick="toggleObjection(1)" class="w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 flex justify-between items-center text-left transition">
+              <span class="font-bold text-xs md:text-sm text-slate-800">💥 異議 1：「總價三萬多太貴了，我再考慮看看」</span>
+              <span id="obj-icon-1" class="text-xs text-slate-400">▼</span>
+            </button>
+            <div id="obj-content-1" class="hidden p-3.5 bg-white text-xs md:text-sm border-t border-slate-100 space-y-2">
+              <div class="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded inline-block">
+                🎯 拆彈心法：不要跟客戶爭論總價，把大額總價拆解為日均早餐零錢
+              </div>
+              <p class="text-slate-700 leading-relaxed">
+                「大哥我完全理解，一次拿出一筆錢任誰都會停一下。<br>
+                但其實這不是多花三萬塊，而是把您跟大姊未來 7 個月每天在外面買瓶裝飲料、咖啡、麵包的零錢移轉過來。<br>
+                算下來一天才 $179 元，換來全家 7 個月深層血管通暢、精神變好，連去醫院排隊掛號的時間跟醫藥費都省下來了。何況今天定案我還自費送您市價兩千多的精品咖啡，真的很划算！」
+              </p>
+            </div>
+          </div>
+
+          <!-- 異議 2 -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+            <button onclick="toggleObjection(2)" class="w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 flex justify-between items-center text-left transition">
+              <span class="font-bold text-xs md:text-sm text-slate-800">💥 異議 2：「我不常喝黑咖啡，或者喝咖啡會心悸胃痛」</span>
+              <span id="obj-icon-2" class="text-xs text-slate-400">▼</span>
+            </button>
+            <div id="obj-content-2" class="hidden p-3.5 bg-white text-xs md:text-sm border-t border-slate-100 space-y-2">
+              <div class="text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded inline-block">
+                🎯 拆彈心法：打破壞豆認知，強調鮮奶拿鐵喝法與得獎伴手禮送禮價值
+              </div>
+              <p class="text-slate-700 leading-relaxed">
+                「大哥您放心！您以前會心悸胃痛，是因為喝到烘焙不當的壞豆子，或是空腹喝傷到胃。<br>
+                翔頂的曼巴耳掛是深度堅果甜香，您只要沖半杯熱水，直接倒進熱鮮奶，就是一杯比連鎖店還香濃的高級拿鐵，完全不傷胃！<br>
+                退一步說，這是客委會認證的得獎伴手禮，送親戚、送重要客戶超有面子，大家都誇您懂生活、有品味！」
+              </p>
+            </div>
+          </div>
+
+          <!-- 異議 3 -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+            <button onclick="toggleObjection(3)" class="w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 flex justify-between items-center text-left transition">
+              <span class="font-bold text-xs md:text-sm text-slate-800">💥 異議 3：「那我不要咖啡，你直接把兩千塊折現給我算便宜點」</span>
+              <span id="obj-icon-3" class="text-xs text-slate-400">▼</span>
+            </button>
+            <div id="obj-content-3" class="hidden p-3.5 bg-white text-xs md:text-sm border-t border-slate-100 space-y-2">
+              <div class="text-[11px] font-bold text-rose-800 bg-rose-50 px-2 py-0.5 rounded inline-block">
+                🎯 拆彈心法：嚴守官方不二價紀律，守護正品形象，強調個人自掏腰包心意
+              </div>
+              <p class="text-slate-700 leading-relaxed">
+                「大哥真不好意思，我們公司的產品價格全台灣嚴格統一，這代表正品保障與市場誠信，任何人都不能私下削價破壞規矩。<br>
+                這份得獎咖啡是我個人自掏腰包回饋給您的心意，我是真心希望您在調理身體的這段時間，每天早上都能享受到一杯最乾淨、最溫暖的好咖啡。這份健康跟心意，絕對比折現更溫暖！」
+              </p>
+            </div>
+          </div>
+
+          <!-- 異議 4 -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+            <button onclick="toggleObjection(4)" class="w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 flex justify-between items-center text-left transition">
+              <span class="font-bold text-xs md:text-sm text-slate-800">💥 異議 4：「我在網路或找其他人買不行嗎？為什麼要跟你訂？」</span>
+              <span id="obj-icon-4" class="text-xs text-slate-400">▼</span>
+            </button>
+            <div id="obj-content-4" class="hidden p-3.5 bg-white text-xs md:text-sm border-t border-slate-100 space-y-2">
+              <div class="text-[11px] font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded inline-block">
+                🎯 拆彈心法：強調全台唯一加碼得獎咖啡 ＋ 烘豆師親自解答的隨身顧問服務
+              </div>
+              <p class="text-slate-700 leading-relaxed">
+                「找誰買產品都一樣，但跟我買有兩大專屬保障：<br>
+                第一，全台灣只有我們團隊自費加碼送您整整 6 份翔頂得獎咖啡，別處絕對沒有；<br>
+                第二，每一包咖啡都附帶烘豆師阿志本人的線上解答承諾，您回家沖煮上有任何水溫、粉水比問題，隨時問、他親自回，直接多了一位專屬咖啡顧問陪伴您！」
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 模組四：5分鐘通關檢核表 -->
+    <section id="section-roleplay" class="tab-content hidden space-y-4">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-2.5 mb-3">
+          <div>
+            <h2 class="text-base md:text-lg font-bold text-slate-900 flex items-center gap-1.5">
+              <span class="text-emerald-600">■</span> 新人 5 分鐘通關演練檢核
+            </h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">與導師對練，完成後即刻勾選驗收</p>
+          </div>
+          <div class="text-right">
+            <span class="text-[11px] text-slate-500 font-semibold">達成進度</span>
+            <div class="text-emerald-700 font-extrabold text-base md:text-lg" id="checklist-progress">0 / 5</div>
+          </div>
+        </div>
+
+        <div class="space-y-2.5">
+          <label class="flex items-start gap-2.5 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 cursor-pointer border border-slate-200 transition">
+            <input type="checkbox" onchange="updateChecklist()" class="mt-1 w-4 h-4 text-emerald-600 rounded">
+            <div>
+              <div class="font-bold text-xs md:text-sm text-slate-800">1. 破冰不油膩</div>
+              <div class="text-[11px] text-slate-500">能在 30 秒內用生活化大白話（節氣、飲食、睡眠）切入，完全不提保健品名稱。</div>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-2.5 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 cursor-pointer border border-slate-200 transition">
+            <input type="checkbox" onchange="updateChecklist()" class="mt-1 w-4 h-4 text-emerald-600 rounded">
+            <div>
+              <div class="font-bold text-xs md:text-sm text-slate-800">2. 算盤拆解順暢</div>
+              <div class="text-[11px] text-slate-500">能將 $37,680 迅速降維拆解為「7 個月調理、每天 $179 銅板價」。</div>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-2.5 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 cursor-pointer border border-slate-200 transition">
+            <input type="checkbox" onchange="updateChecklist()" class="mt-1 w-4 h-4 text-emerald-600 rounded">
+            <div>
+              <div class="font-bold text-xs md:text-sm text-slate-800">3. 臨門一腳熟練</div>
+              <div class="text-[11px] text-slate-500">能自然講出「買 6 套自費送 6 份翔頂得獎咖啡（3磅豆或60包耳掛）」，眼神自信真誠。</div>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-2.5 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 cursor-pointer border border-slate-200 transition">
+            <input type="checkbox" onchange="updateChecklist()" class="mt-1 w-4 h-4 text-emerald-600 rounded">
+            <div>
+              <div class="font-bold text-xs md:text-sm text-slate-800">4. 異議拆彈沉著</div>
+              <div class="text-[11px] text-slate-500">面對「我不喝黑咖啡」或「能不能折現」，能在 5 秒內用標準小抄溫和接球化解。</div>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-2.5 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 cursor-pointer border border-slate-200 transition">
+            <input type="checkbox" onchange="updateChecklist()" class="mt-1 w-4 h-4 text-emerald-600 rounded">
+            <div>
+              <div class="font-bold text-xs md:text-sm text-slate-800">5. 賣貨便閉環熟練</div>
+              <div class="text-[11px] text-slate-500">能在一分鐘內調出 7-11 賣貨便連結，引導顧客選擇超商取貨付款。</div>
+            </div>
+          </label>
+        </div>
+
+        <div id="congrats-box" class="hidden mt-3 p-3.5 bg-emerald-100 border border-emerald-300 rounded-xl text-emerald-950 text-center font-bold text-xs md:text-sm">
+          🎉 太棒了！五大檢核全數過關！您已具備一線獨立成交大單的完整戰力！
+        </div>
+      </div>
+    </section>
+
+    <!-- 模組五：快速叫貨報單 -->
+    <section id="section-order" class="tab-content hidden space-y-4">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6">
+        <div class="border-b border-slate-100 pb-2.5 mb-3">
+          <h2 class="text-base md:text-lg font-bold text-slate-900 flex items-center gap-1.5">
+            <span class="text-emerald-600">■</span> LINE 報單給阿志（排單現烘）
+          </h2>
+          <p class="text-[11px] text-slate-500 mt-0.5">客戶下單後，一鍵生成文本直接發 LINE 給阿志，省去繁瑣溝通！</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">夥伴姓名（你）：</label>
+            <input type="text" id="order-partner-name" value="夥伴小陳" oninput="generateOrderText()" class="w-full px-3 py-2 border rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">成交客戶姓名：</label>
+            <input type="text" id="order-client-name" value="王大明" oninput="generateOrderText()" class="w-full px-3 py-2 border rounded-lg text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">7-11 賣貨便訂單編號：</label>
+            <input type="text" id="order-ship-id" value="M261014-988" oninput="generateOrderText()" class="w-full px-3 py-2 border rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">成交方案組合：</label>
+            <input type="text" id="order-plan-name" value="A方案 6+1 套組 ($37,680)" readonly class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-100 text-slate-600">
+          </div>
+        </div>
+
+        <div class="relative mt-2">
+          <div class="flex justify-between items-center mb-1.5">
+            <span class="text-xs font-semibold text-slate-600">報單文本：</span>
+            <div class="flex gap-2">
+              <button onclick="copyOrderText()" class="bg-teal-700 hover:bg-teal-800 active:scale-95 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow-xs transition">
+                <span id="order-copy-icon">📋</span> <span id="order-copy-text">複製報單文字</span>
+              </button>
+              <a href="https://line.me/R/nv/chat" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow-xs transition">
+                <span>💬</span> 開啟 LINE
+              </a>
+            </div>
+          </div>
+          <textarea id="order-output" rows="8" readonly class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-xs md:text-sm text-slate-800 leading-relaxed font-mono focus:outline-none"></textarea>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 底部固定快速操作列（手機端極度友善） -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-slate-200 px-4 py-2.5 z-20 flex justify-between items-center max-w-4xl mx-auto shadow-lg">
+    <div class="text-[11px] text-slate-600 flex items-center gap-1">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      <span>翔頂咖啡 × 芙瑞納 夥伴專用工作台</span>
+    </div>
+    <div class="flex gap-2">
+      <a href="https://myship.7-11.com.tw/general/detail/GM2511148315976" target="_blank" class="text-xs font-bold bg-slate-100 text-slate-800 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-300 flex items-center gap-1">
+        <span>🏪</span> 賣貨便賣場
+      </a>
+      <button onclick="shareToolkit()" class="text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1">
+        <span>📤</span> 分享工具
+      </button>
+    </div>
+  </div>
+
+  <!-- 互動腳本邏輯 -->
+  <script>
+    let currentPlan = 'A';
+    let beansCount = 3;
+    let dripCount = 3;
+    let totalNeeded = 6;
+
+    const PLAN_DATA = {
+      'A': {
+        name: 'A 方案 (買 6 送 1)',
+        price: 37680,
+        giftUnits: 6,
+        setsText: '6 + 1 = 7 套',
+        dailyCost: '$179 / 天',
+        partnerReward: 7680,
+      },
+      'B': {
+        name: 'B 方案 (買 18 送 4)',
+        price: 95520,
+        giftUnits: 18,
+        setsText: '18 + 4 = 22 套',
+        dailyCost: '$145 / 天',
+        partnerReward: 23040,
+      },
+      'single': {
+        name: '單套體驗組 (1 個月)',
+        price: 4820,
+        giftUnits: 1,
+        setsText: '1 套 (30 天)',
+        dailyCost: '$160 / 天',
+        partnerReward: 960,
+      }
+    };
+
+    function selectPlan(planKey) {
+      currentPlan = planKey;
+      const data = PLAN_DATA[planKey];
+      totalNeeded = data.giftUnits;
+
+      document.querySelectorAll('.plan-btn').forEach(btn => {
+        btn.classList.remove('border-emerald-600', 'bg-emerald-50/60', 'border-2');
+        btn.classList.add('border-slate-200', 'bg-white');
+      });
+      const activeBtn = document.getElementById('plan-btn-' + planKey);
+      activeBtn.classList.remove('border-slate-200', 'bg-white');
+      activeBtn.classList.add('border-emerald-600', 'bg-emerald-50/60', 'border-2');
+
+      const rBeans = document.getElementById('range-beans');
+      const rDrip = document.getElementById('range-drip');
+      rBeans.max = totalNeeded;
+      rDrip.max = totalNeeded;
+
+      beansCount = Math.floor(totalNeeded / 2);
+      dripCount = totalNeeded - beansCount;
+      rBeans.value = beansCount;
+      rDrip.value = dripCount;
+
+      document.getElementById('total-gifts-needed').innerText = totalNeeded;
+      document.getElementById('order-plan-name').value = `${data.name} ($${data.price.toLocaleString()})`;
+
+      recalculate();
+    }
+
+    function updateGiftsFromBeans(val) {
+      beansCount = parseInt(val, 10);
+      dripCount = totalNeeded - beansCount;
+      document.getElementById('range-drip').value = dripCount;
+      recalculate();
+    }
+
+    function updateGiftsFromDrip(val) {
+      dripCount = parseInt(val, 10);
+      beansCount = totalNeeded - dripCount;
+      document.getElementById('range-beans').value = beansCount;
+      recalculate();
+    }
+
+    function recalculate() {
+      const plan = PLAN_DATA[currentPlan];
+
+      document.getElementById('label-beans-count').innerText = `${beansCount} 包 (${(beansCount * 0.5).toFixed(1)} 磅)`;
+      document.getElementById('label-drip-count').innerText = `${dripCount} 盒 (${dripCount * 10} 包)`;
+
+      const coffeeMarketVal = (beansCount * 350) + (dripCount * 300);
+      const partnerCost = (beansCount * 280) + (dripCount * 240);
+      const partnerProfit = plan.partnerReward - partnerCost;
+
+      document.getElementById('client-sets').innerText = plan.setsText;
+      document.getElementById('client-daily').innerText = plan.dailyCost;
+      document.getElementById('client-coffee-val').innerText = `$${coffeeMarketVal.toLocaleString()} 元`;
+
+      document.getElementById('partner-reward').innerText = `$${plan.partnerReward.toLocaleString()} 元`;
+      document.getElementById('partner-cost').innerText = `- $${partnerCost.toLocaleString()} 元`;
+      document.getElementById('partner-profit').innerText = `$${partnerProfit.toLocaleString()} 元`;
+
+      document.getElementById('owner-shipment').innerText = `${totalNeeded} 份 (${beansCount}豆 / ${dripCount}耳掛)`;
+      document.getElementById('owner-income').innerText = `$${partnerCost.toLocaleString()} 元`;
+
+      regenerateScripts();
+      generateOrderText();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('tab-active', 'text-white');
+        btn.classList.add('text-emerald-200');
+      });
+
+      document.getElementById('section-' + tabId).classList.remove('hidden');
+      const activeBtn = document.getElementById('tab-btn-' + tabId);
+      activeBtn.classList.add('tab-active', 'text-white');
+      activeBtn.classList.remove('text-emerald-200');
+    }
+
+    function regenerateScripts() {
+      const name = document.getElementById('input-client-name').value.trim() || '王大哥';
+      const tone = document.getElementById('select-tone').value;
+      const plan = PLAN_DATA[currentPlan];
+      const coffeeVal = (beansCount * 350) + (dripCount * 300);
+
+      let text = '';
+      if (tone === 'line') {
+        document.getElementById('script-type-label').innerText = '📱 LINE 私訊促單範本（直接複製轉發）：';
+        text = `${name}好！整理今天聊到的【${plan.name} 微循環深層調理方案】：
+
+這套原廠精密配好，每天早晨空腹一杯，整整 ${plan.setsText} 的細胞全營養配給，
+折算下來，每天平均才 ${plan.dailyCost}（一杯星巴克的預算），就能把身體十萬公里的深層微循環徹底打通！
+
+因為今天我們聊得很投緣，如果您這兩天跟我定案：
+除了公司原本的優惠，我個人私下自費加碼【送整整 ${totalNeeded} 份翔頂得獎咖啡】！
+
+🎁 咖啡好禮二選一（整整 ${totalNeeded} 份，市價 $${coffeeVal.toLocaleString()}，我為您買單）：
+1. 半磅無名小卒精品熟豆（現烘手沖豆，阿志親自烘焙）
+2. 經典曼巴耳掛禮盒（純鋁箔密封，辦公室隨手沖）
+（您要全部豆子、全部耳掛，或各半混搭都可以！）
+
+☕ 每天早晨黃金儀式：
+「一杯溫熱精力湯喚醒微循環 ＋ 一杯得獎好咖啡提神抗氧」
+
+我幫您開好 7-11 賣貨便專屬賣場，直接超商貨到付款最安心：
+🔗 賣場連結：https://myship.7-11.com.tw/general/detail/GM2511148315976
+
+咖啡我送您，健康您帶回家，我們一起給身體一個重開機的機會！`;
+      } else if (tone === 'inperson') {
+        document.getElementById('script-type-label').innerText = '🎯 當面 / 電話一對一臨門逼單提綱（照著念）：';
+        text = `「${name}，我知道一次拿半年份的量，心裡一定會想：真的需要一下子買這麼多嗎？
+
+但你想想看，人體細胞深層修復需要 90 到 180 天，這套 ${plan.name}，不是要推銷你多買，
+而是給身體一個真正完整翻盤的修復期。而且算下來，一天其實才一百多塊，跟超商吃個早餐差不多。
+
+今天我們既然聊得這麼投緣，你願意給自己身體一個機會，在我們這邊定案，
+我不僅幫你把公司的優惠拿滿——
+
+我私底下個人自費加碼，直接送你整整 ${totalNeeded} 份新竹客委會、竹北雙料伴手禮得獎名店『翔頂咖啡』的禮品！
+看你要整整 ${(totalNeeded * 0.5).toFixed(1)} 磅阿志親自烘焙的手沖豆，還是 ${totalNeeded * 10} 包純鋁箔曼巴耳掛，隨你挑，市價兩千多塊我替你買單！
+每一包咖啡都附帶專屬沖煮指引，回家沖煮有任何問題都可以直接問烘豆師，連早晨每一杯好風味都幫你照顧到。
+
+咖啡我自費送你，健康你帶回家。今天我直接幫你在 7-11 賣貨便送出，超商取貨付款最安心，
+我們今天就開始給身體一個機會，好不好？」`;
+      } else {
+        document.getElementById('script-type-label').innerText = '🌿 生活日常聊天破冰提綱：';
+        text = `「${name}，你也有在看健檢報告喔？其實我也是這幾年才深刻體會到，人過了四十歲，真的不能跟身體賭氣。
+我以前也是每天下午腦袋發昏、胃脹氣，後來遇到新竹在地二十年的咖啡烘豆師阿志，
+他教我一套『晨間微循環保養法』：
+
+早上起床不要空腹猛灌冰水或濃咖啡，先用一杯溫溫的細胞精力湯墊胃，把大豆胜肽跟全營養吃進去，
+讓胃黏膜有保護、微循環熱開了；隔十五分鐘再來一杯新鮮好咖啡，整天精神好到不行，排便也超順。
+
+不用急著買什麼昂貴補品，關鍵是給身體細胞對的原物料。改天我帶一包好咖啡跟精力湯請你喝喝看，
+你先感受一下身體那種通透的舒服感！」`;
+      }
+
+      document.getElementById('script-output').value = text;
+    }
+
+    function copyGeneratedScript() {
+      const output = document.getElementById('script-output');
+      output.select();
+      navigator.clipboard.writeText(output.value).then(() => {
+        document.getElementById('copy-text').innerText = '已複製到剪貼簿！';
+        document.getElementById('copy-icon').innerText = '✅';
+        setTimeout(() => {
+          document.getElementById('copy-text').innerText = '一鍵複製話術';
+          document.getElementById('copy-icon').innerText = '📋';
+        }, 2000);
+      });
+    }
+
+    function toggleObjection(idx) {
+      const content = document.getElementById('obj-content-' + idx);
+      const icon = document.getElementById('obj-icon-' + idx);
+      if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        icon.innerText = '▲';
+      } else {
+        content.classList.add('hidden');
+        icon.innerText = '▼';
+      }
+    }
+
+    function updateChecklist() {
+      const checkboxes = document.querySelectorAll('#section-roleplay input[type="checkbox"]');
+      let checkedCount = 0;
+      checkboxes.forEach(cb => { if (cb.checked) checkedCount++; });
+      document.getElementById('checklist-progress').innerText = `${checkedCount} / 5`;
+
+      const congrats = document.getElementById('congrats-box');
+      if (checkedCount === 5) {
+        congrats.classList.remove('hidden');
+      } else {
+        congrats.classList.add('hidden');
+      }
+    }
+
+    function generateOrderText() {
+      const pName = document.getElementById('order-partner-name').value.trim() || '夥伴';
+      const cName = document.getElementById('order-client-name').value.trim() || '客戶';
+      const shipId = document.getElementById('order-ship-id').value.trim() || 'M261014-XXX';
+      const plan = PLAN_DATA[currentPlan];
+
+      const text = `【Featera 促單出貨通知】
+夥伴姓名：${pName}
+客戶姓名：${cName}
+成交方案：${plan.name} ($${plan.price.toLocaleString()})
+加碼咖啡配置：手沖豆 ${beansCount} 包 ＋ 曼巴耳掛 ${dripCount} 盒（共 ${totalNeeded} 份）
+出貨方式：7-11 賣貨便取貨付款
+訂單編號：${shipId}
+阿志請協助排單新鮮烘焙，感謝！`;
+
+      document.getElementById('order-output').value = text;
+    }
+
+    function copyOrderText() {
+      const output = document.getElementById('order-output');
+      output.select();
+      navigator.clipboard.writeText(output.value).then(() => {
+        document.getElementById('order-copy-text').innerText = '已複製報單文字！';
+        document.getElementById('order-copy-icon').innerText = '✅';
+        setTimeout(() => {
+          document.getElementById('order-copy-text').innerText = '複製報單文字';
+          document.getElementById('order-copy-icon').innerText = '📋';
+        }, 2000);
+      });
+    }
+
+    function shareToolkit() {
+      if (navigator.share) {
+        navigator.share({
+          title: 'Featera × 翔頂咖啡 促單神器',
+          text: '芙瑞納夥伴專屬：送咖啡促單成交互動神器，算盤與話術一鍵查！',
+          url: window.location.href
+        }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+          alert('工作台網址已複製到剪貼簿！可直接貼在 LINE 傳給夥伴！');
+        });
+      }
+    }
+
+    selectPlan('A');
+  </script>
+</body>
+</html>

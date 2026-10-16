@@ -47,7 +47,7 @@
         <p class="text-emerald-200 text-[11px] md:text-xs">夥伴隨身專用版 ｜ 買咖啡送促單 ｜ 算盤話術一鍵查</p>
       </div>
       <div class="flex flex-col items-end gap-1">
-        <span class="bg-emerald-700/90 text-emerald-100 text-[11px] px-2 py-0.5 rounded-full font-mono">v1.1 (2026.10.14)</span>
+        <span class="bg-emerald-700/90 text-emerald-100 text-[11px] px-2 py-0.5 rounded-full font-mono">v1.2 (2026.10.16 回購升級)</span>
         <span class="bg-amber-400 text-slate-950 text-[10px] px-2 py-0.5 rounded-full font-bold">阿志親製・已同步</span>
       </div>
     </div>
@@ -75,18 +75,25 @@
         </div>
 
         <!-- 方案快捷切換 -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
           <button onclick="selectPlan('A')" id="plan-btn-A" class="plan-btn p-3 border-2 border-emerald-600 bg-emerald-50/60 rounded-xl text-left transition relative">
-            <span class="absolute top-2 right-2 bg-emerald-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">主流首選</span>
-            <div class="font-bold text-slate-900 text-sm">A 方案（買 6 送 1）</div>
+            <span class="absolute top-2 right-2 bg-emerald-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">首購首選</span>
+            <div class="font-bold text-slate-900 text-sm">A 方案（首購 6+1）</div>
             <div class="text-emerald-700 font-extrabold text-base mt-0.5">$37,680</div>
-            <div class="text-[11px] text-slate-500 mt-0.5">送 6 份得獎咖啡 ｜ 7 個月調理</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">送 6 份得獎咖啡 ｜ 7 個月</div>
           </button>
 
           <button onclick="selectPlan('B')" id="plan-btn-B" class="plan-btn p-3 border border-slate-200 bg-white hover:border-emerald-400 rounded-xl text-left transition">
-            <div class="font-bold text-slate-900 text-sm">B 方案（買 18 送 4）</div>
+            <div class="font-bold text-slate-900 text-sm">B 方案（首購 18+4）</div>
             <div class="text-emerald-700 font-extrabold text-base mt-0.5">$95,520</div>
             <div class="text-[11px] text-slate-500 mt-0.5">送 18 份得獎咖啡 ｜ 全家共享</div>
+          </button>
+
+          <button onclick="selectPlan('repurchase_A')" id="plan-btn-repurchase_A" class="plan-btn p-3 border border-slate-200 bg-white hover:border-amber-400 rounded-xl text-left transition relative">
+            <span class="absolute top-2 right-2 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">現省$8,760</span>
+            <div class="font-bold text-slate-900 text-sm">A 方案【會員回購】</div>
+            <div class="text-amber-700 font-extrabold text-base mt-0.5">$28,920</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">送 1 包季豆心意禮 ｜ 8折加購</div>
           </button>
 
           <button onclick="selectPlan('single')" id="plan-btn-single" class="plan-btn p-3 border border-slate-200 bg-white hover:border-emerald-400 rounded-xl text-left transition">
@@ -223,6 +230,8 @@
             <select id="select-tone" onchange="regenerateScripts()" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
               <option value="line">📱 LINE 私訊促單版（含賣貨便連結）</option>
               <option value="inperson">🎯 當面 / 電話一對一臨門逼單版</option>
+              <option value="anchor">⚓ 首購結尾防呆定錨版（防未來期待錯置）</option>
+              <option value="repurchase">🔄 會員 7 個月回購關懷版（現省 $8,760 ＋ 贈 1 包季豆心意禮）</option>
               <option value="casual">🌿 生活日常聊天破冰版</option>
             </select>
           </div>
@@ -318,6 +327,24 @@
                 「找誰買產品都一樣，但跟我買有兩大專屬保障：<br>
                 第一，全台灣只有我們團隊自費加碼送您整整 6 份翔頂得獎咖啡，別處絕對沒有；<br>
                 第二，每一包咖啡都附帶烘豆師阿志本人的線上解答承諾，您回家沖煮上有任何水溫、粉水比問題，隨時問、他親自回，直接多了一位專屬咖啡顧問陪伴您！」
+              </p>
+            </div>
+          </div>
+
+          <!-- 異議 5 -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+            <button onclick="toggleObjection(5)" class="w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 flex justify-between items-center text-left transition">
+              <span class="font-bold text-xs md:text-sm text-slate-800">💥 異議 5：「我這次回購 6+1 套，怎麼沒有像上次一樣送 6 包咖啡？」</span>
+              <span id="obj-icon-5" class="text-xs text-slate-400">▼</span>
+            </button>
+            <div id="obj-content-5" class="hidden p-3.5 bg-white text-xs md:text-sm border-t border-slate-100 space-y-2">
+              <div class="text-[11px] font-bold text-purple-800 bg-purple-50 px-2 py-0.5 rounded inline-block">
+                🎯 拆彈心法：拆解官方出廠價直接現省 $8,760，6 包是迎賓禮，本次送 1 包季豆心意禮＋8折特權
+              </div>
+              <p class="text-slate-700 leading-relaxed">
+                「大哥您算盤真精！但您看這張訂單：您上次首購是原價入會 $37,680，那時候我和阿志自費送您 6 份咖啡作為迎賓禮；<br>
+                這次您是以老會員身分回購，價格直接跳水變成 $28,920，公司等於直接把整整 $8,760 元現金折在總價給您了（每套便宜了一千兩百多塊）！<br>
+                這個超殺出廠價已經把利潤完全回饋給您，所以沒辦法再重複送大禮包。但我跟阿志說好了，為了挺您繼續保養，我個人自掏腰包招待您一包翔頂最新到港烘焙的精品豆（或耳掛）當作心意禮，而且未來您要喝翔頂任何咖啡，通通享有終身 8 折 VIP 戰友價！」
               </p>
             </div>
           </div>
@@ -465,20 +492,31 @@
 
     const PLAN_DATA = {
       'A': {
-        name: 'A 方案 (買 6 送 1)',
+        name: 'A 方案 (首購 買 6 送 1)',
         price: 37680,
         giftUnits: 6,
-        setsText: '6 + 1 = 7 套',
+        setsText: '6 + 1 = 7 套 (首購)',
         dailyCost: '$179 / 天',
         partnerReward: 7680,
+        isRepurchase: false,
       },
       'B': {
-        name: 'B 方案 (買 18 送 4)',
+        name: 'B 方案 (首購 買 18 送 4)',
         price: 95520,
         giftUnits: 18,
-        setsText: '18 + 4 = 22 套',
+        setsText: '18 + 4 = 22 套 (首購)',
         dailyCost: '$145 / 天',
         partnerReward: 23040,
+        isRepurchase: false,
+      },
+      'repurchase_A': {
+        name: 'A 方案【會員回購 買 6 送 1】',
+        price: 28920,
+        giftUnits: 1,
+        setsText: '6 + 1 = 7 套 (現省 $8,760！)',
+        dailyCost: '$137 / 天',
+        partnerReward: 1600,
+        isRepurchase: true,
       },
       'single': {
         name: '單套體驗組 (1 個月)',
@@ -487,6 +525,7 @@
         setsText: '1 套 (30 天)',
         dailyCost: '$160 / 天',
         partnerReward: 960,
+        isRepurchase: false,
       }
     };
 
@@ -496,12 +535,16 @@
       totalNeeded = data.giftUnits;
 
       document.querySelectorAll('.plan-btn').forEach(btn => {
-        btn.classList.remove('border-emerald-600', 'bg-emerald-50/60', 'border-2');
+        btn.classList.remove('border-emerald-600', 'bg-emerald-50/60', 'border-2', 'border-amber-500', 'bg-amber-50/60');
         btn.classList.add('border-slate-200', 'bg-white');
       });
       const activeBtn = document.getElementById('plan-btn-' + planKey);
       activeBtn.classList.remove('border-slate-200', 'bg-white');
-      activeBtn.classList.add('border-emerald-600', 'bg-emerald-50/60', 'border-2');
+      if (data.isRepurchase) {
+        activeBtn.classList.add('border-amber-500', 'bg-amber-50/60', 'border-2');
+      } else {
+        activeBtn.classList.add('border-emerald-600', 'bg-emerald-50/60', 'border-2');
+      }
 
       const rBeans = document.getElementById('range-beans');
       const rDrip = document.getElementById('range-drip');
@@ -586,7 +629,7 @@
 折算下來，每天平均才 ${plan.dailyCost}（一杯星巴克的預算），就能把身體十萬公里的深層微循環徹底打通！
 
 因為今天我們聊得很投緣，如果您這兩天跟我定案：
-除了公司原本的優惠，我個人私下自費加碼【送整整 ${totalNeeded} 份翔頂得獎咖啡】！
+除了公司原本的優惠，我個人私下自費加碼【首購迎賓禮：送整整 ${totalNeeded} 份翔頂得獎咖啡】！
 
 🎁 咖啡好禮二選一（整整 ${totalNeeded} 份，市價 $${coffeeVal.toLocaleString()}，我為您買單）：
 1. 半磅無名小卒精品熟豆（現烘手沖豆，阿志親自烘焙）
@@ -616,6 +659,26 @@
 
 咖啡我自費送你，健康你帶回家。今天我直接幫你在 7-11 賣貨便送出，超商取貨付款最安心，
 我們今天就開始給身體一個機會，好不好？」`;
+      } else if (tone === 'anchor') {
+        document.getElementById('script-type-label').innerText = '⚓ 首購結尾防呆定錨話術（防未來期待錯置）：';
+        text = `「${name}，這 ${totalNeeded} 份客委會得獎咖啡，是我跟阿志烘豆師自掏腰包，專門為您準備的『90 天微循環啟動迎賓禮』！
+
+未來 7 個月後您回購，您就直接升級為終身 VIP，每一組官方直接幫您省下將近九千塊（從三萬七降到兩萬八，每套直接便宜 $1,252），那才是您長期健康省錢的最大權益！
+
+咖啡我自費送您，健康您帶回家，我們一起給身體一個重開機的機會！」`;
+      } else if (tone === 'repurchase') {
+        document.getElementById('script-type-label').innerText = '🔄 會員 7 個月回購關懷版（現省 $8,760 ＋ 贈 1 包季豆心意禮）：';
+        text = `「${name}早！恭喜您順利完成了前 7 個月的深層細胞微循環調理！
+看您最近氣色這麼紅潤、精神這麼好，真的替您開心！
+
+這次幫您安排回購 6+1 套，您用老會員資格直接享受公司的出廠回購價 $28,920 元，
+整組直接幫您省下 $8,760 元現金（等於每套便宜了一千兩百多塊）！
+
+雖然回購因為價格已經折到底，沒辦法再像首購那樣送 6 大包咖啡，
+但我特別跟阿志交代，為了感謝您長期照顧身體的堅持，
+這次我自掏腰包招待您一包翔頂最新到港烘焙的精品手沖豆（或一盒曼巴耳掛）當作保養心意禮！
+而且未來只要您想喝翔頂咖啡，通通終身享有 8 折 VIP 戰友價！
+我一樣幫您排單送出，我們繼續維持好精神好狀態！」`;
       } else {
         document.getElementById('script-type-label').innerText = '🌿 生活日常聊天破冰提綱：';
         text = `「${name}，你也有在看健檢報告喔？其實我也是這幾年才深刻體會到，人過了四十歲，真的不能跟身體賭氣。

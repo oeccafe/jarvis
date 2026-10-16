@@ -50,7 +50,7 @@
         <p class="text-emerald-200 text-[11px] md:text-xs">夥伴隨身專用版 ｜ 買咖啡送促單 ｜ 算盤話術一鍵查</p>
       </div>
       <div class="flex flex-col items-end gap-1">
-        <span class="bg-emerald-700/90 text-emerald-100 text-[11px] px-2 py-0.5 rounded-full font-mono">v1.2 (2026.10.16 回購升級)</span>
+        <span class="bg-emerald-700/90 text-emerald-100 text-[11px] px-2 py-0.5 rounded-full font-mono">v1.3 (2026.10.16 A/B/C全方案完整版)</span>
         <span class="bg-amber-400 text-slate-950 text-[10px] px-2 py-0.5 rounded-full font-bold">阿志親製・已同步</span>
       </div>
     </div>
@@ -77,33 +77,69 @@
           <span class="text-[11px] text-slate-500">自動精算三方利益</span>
         </div>
 
-        <!-- 方案快捷切換 -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
-          <button onclick="selectPlan('A')" id="plan-btn-A" class="plan-btn p-3 border-2 border-emerald-600 bg-emerald-50/60 rounded-xl text-left transition relative">
-            <span class="absolute top-2 right-2 bg-emerald-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">首購首選</span>
-            <div class="font-bold text-slate-900 text-sm">A 方案（首購 6+1）</div>
-            <div class="text-emerald-700 font-extrabold text-base mt-0.5">$37,680</div>
-            <div class="text-[11px] text-slate-500 mt-0.5">送 6 份得獎咖啡 ｜ 7 個月</div>
-          </button>
+        <!-- 方案快捷切換（首購 A/B/C/單套 ＋ 回購 A/B） -->
+        <div class="space-y-3 mb-4">
+          <!-- 首購攻堅專區 -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                <span>🌟</span> 【首購入會攻堅專區】（1:1 加碼送阿志得獎咖啡）
+              </span>
+              <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">高額推薦獎金支撐</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button onclick="selectPlan('A')" id="plan-btn-A" class="plan-btn p-2.5 border-2 border-emerald-600 bg-emerald-50/60 rounded-xl text-left transition relative">
+                <span class="absolute top-1.5 right-1.5 bg-emerald-600 text-white text-[9px] px-1 py-0.2 rounded font-bold">主流首選</span>
+                <div class="font-bold text-slate-900 text-xs sm:text-sm">A 方案 (6+1)</div>
+                <div class="text-emerald-700 font-extrabold text-sm sm:text-base mt-0.5">$37,680</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">送 6 份咖啡 ｜ 7個月</div>
+              </button>
 
-          <button onclick="selectPlan('B')" id="plan-btn-B" class="plan-btn p-3 border border-slate-200 bg-white hover:border-emerald-400 rounded-xl text-left transition">
-            <div class="font-bold text-slate-900 text-sm">B 方案（首購 18+4）</div>
-            <div class="text-emerald-700 font-extrabold text-base mt-0.5">$95,520</div>
-            <div class="text-[11px] text-slate-500 mt-0.5">送 18 份得獎咖啡 ｜ 全家共享</div>
-          </button>
+              <button onclick="selectPlan('B')" id="plan-btn-B" class="plan-btn p-2.5 border border-slate-200 bg-white hover:border-emerald-400 rounded-xl text-left transition relative">
+                <div class="font-bold text-slate-900 text-xs sm:text-sm">B 方案 (18+4)</div>
+                <div class="text-emerald-700 font-extrabold text-sm sm:text-base mt-0.5">$95,520</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">送 18 份咖啡 ｜ 22套</div>
+              </button>
 
-          <button onclick="selectPlan('repurchase_A')" id="plan-btn-repurchase_A" class="plan-btn p-3 border border-slate-200 bg-white hover:border-amber-400 rounded-xl text-left transition relative">
-            <span class="absolute top-2 right-2 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">現省$8,760</span>
-            <div class="font-bold text-slate-900 text-sm">A 方案【會員回購】</div>
-            <div class="text-amber-700 font-extrabold text-base mt-0.5">$28,920</div>
-            <div class="text-[11px] text-slate-500 mt-0.5">送 1 包季豆心意禮 ｜ 8折加購</div>
-          </button>
+              <button onclick="selectPlan('C')" id="plan-btn-C" class="plan-btn p-2.5 border border-slate-200 bg-white hover:border-purple-400 rounded-xl text-left transition relative">
+                <span class="absolute top-1.5 right-1.5 bg-purple-600 text-white text-[9px] px-1 py-0.2 rounded font-bold">全系列+現回</span>
+                <div class="font-bold text-slate-900 text-xs sm:text-sm">C 方案 (36+8)</div>
+                <div class="text-purple-700 font-extrabold text-sm sm:text-base mt-0.5">$191,040</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">送36份豆+現回$16,128</div>
+              </button>
 
-          <button onclick="selectPlan('single')" id="plan-btn-single" class="plan-btn p-3 border border-slate-200 bg-white hover:border-emerald-400 rounded-xl text-left transition">
-            <div class="font-bold text-slate-900 text-sm">單套體驗組（1 個月）</div>
-            <div class="text-emerald-700 font-extrabold text-base mt-0.5">$4,820</div>
-            <div class="text-[11px] text-slate-500 mt-0.5">送 1 份得獎咖啡 ｜ 試喝破冰</div>
-          </button>
+              <button onclick="selectPlan('single')" id="plan-btn-single" class="plan-btn p-2.5 border border-slate-200 bg-white hover:border-emerald-400 rounded-xl text-left transition relative">
+                <div class="font-bold text-slate-900 text-xs sm:text-sm">單套體驗組</div>
+                <div class="text-emerald-700 font-extrabold text-sm sm:text-base mt-0.5">$4,820</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">送 1 份咖啡 ｜ 30天試喝</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- 老會員回購專區 -->
+          <div class="pt-2 border-t border-slate-100">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-amber-800 flex items-center gap-1">
+                <span>🔄</span> 【老會員回購專區】（官方出廠折價直接省近萬 ＋ 阿志季豆心意禮）
+              </span>
+              <span class="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold">現省 $8,760</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button onclick="selectPlan('repurchase_A')" id="plan-btn-repurchase_A" class="plan-btn p-2.5 border border-slate-200 bg-white hover:border-amber-400 rounded-xl text-left transition relative">
+                <span class="absolute top-2 right-2 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">直接省 $8,760</span>
+                <div class="font-bold text-slate-900 text-xs sm:text-sm">A 方案【會員回購】(6+1 套)</div>
+                <div class="text-amber-700 font-extrabold text-base mt-0.5">$28,920 <span class="text-xs text-slate-400 line-through font-normal">$37,680</span></div>
+                <div class="text-[11px] text-slate-600 mt-0.5">送 1 包季豆心意禮 ｜ 翔頂精品咖啡終身 8 折 VIP 優惠</div>
+              </button>
+
+              <button onclick="selectPlan('repurchase_B')" id="plan-btn-repurchase_B" class="plan-btn p-2.5 border border-slate-200 bg-white hover:border-amber-400 rounded-xl text-left transition relative">
+                <span class="absolute top-2 right-2 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">直接省 $8,760</span>
+                <div class="font-bold text-slate-900 text-xs sm:text-sm">B 方案【會員回購】(18+4 套)</div>
+                <div class="text-amber-700 font-extrabold text-base mt-0.5">$86,760 <span class="text-xs text-slate-400 line-through font-normal">$95,520</span></div>
+                <div class="text-[11px] text-slate-600 mt-0.5">送 2 包季豆心意禮 ｜ 翔頂精品咖啡終身 8 折 VIP 優惠</div>
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- 咖啡配置滑桿 / 輸入 -->
@@ -512,14 +548,14 @@
         partnerReward: 23040,
         isRepurchase: false,
       },
-      'repurchase_A': {
-        name: 'A 方案【會員回購 買 6 送 1】',
-        price: 28920,
-        giftUnits: 1,
-        setsText: '6 + 1 = 7 套 (現省 $8,760！)',
-        dailyCost: '$137 / 天',
-        partnerReward: 1600,
-        isRepurchase: true,
+      'C': {
+        name: 'C 方案 (首購 買 36 送 8 + N1~N5全系列)',
+        price: 191040,
+        giftUnits: 36,
+        setsText: '36 + 8 = 44 套 + N1~N5瓶裝 (現回$16,128)',
+        dailyCost: '$145 / 天 (均$3,623/套)',
+        partnerReward: 38400,
+        isRepurchase: false,
       },
       'single': {
         name: '單套體驗組 (1 個月)',
@@ -529,6 +565,24 @@
         dailyCost: '$160 / 天',
         partnerReward: 960,
         isRepurchase: false,
+      },
+      'repurchase_A': {
+        name: 'A 方案【會員回購 買 6 送 1】',
+        price: 28920,
+        giftUnits: 1,
+        setsText: '6 + 1 = 7 套 (現省 $8,760！)',
+        dailyCost: '$137 / 天',
+        partnerReward: 1600,
+        isRepurchase: true,
+      },
+      'repurchase_B': {
+        name: 'B 方案【會員回購 買 18 送 4】',
+        price: 86760,
+        giftUnits: 2,
+        setsText: '18 + 4 = 22 套 (現省 $8,760！)',
+        dailyCost: '$131 / 天',
+        partnerReward: 4800,
+        isRepurchase: true,
       }
     };
 
@@ -538,15 +592,19 @@
       totalNeeded = data.giftUnits;
 
       document.querySelectorAll('.plan-btn').forEach(btn => {
-        btn.classList.remove('border-emerald-600', 'bg-emerald-50/60', 'border-2', 'border-amber-500', 'bg-amber-50/60');
+        btn.classList.remove('border-emerald-600', 'bg-emerald-50/60', 'border-2', 'border-amber-500', 'bg-amber-50/60', 'border-purple-600', 'bg-purple-50/60');
         btn.classList.add('border-slate-200', 'bg-white');
       });
       const activeBtn = document.getElementById('plan-btn-' + planKey);
-      activeBtn.classList.remove('border-slate-200', 'bg-white');
-      if (data.isRepurchase) {
-        activeBtn.classList.add('border-amber-500', 'bg-amber-50/60', 'border-2');
-      } else {
-        activeBtn.classList.add('border-emerald-600', 'bg-emerald-50/60', 'border-2');
+      if (activeBtn) {
+        activeBtn.classList.remove('border-slate-200', 'bg-white');
+        if (data.isRepurchase) {
+          activeBtn.classList.add('border-amber-500', 'bg-amber-50/60', 'border-2');
+        } else if (planKey === 'C') {
+          activeBtn.classList.add('border-purple-600', 'bg-purple-50/60', 'border-2');
+        } else {
+          activeBtn.classList.add('border-emerald-600', 'bg-emerald-50/60', 'border-2');
+        }
       }
 
       const rBeans = document.getElementById('range-beans');

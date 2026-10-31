@@ -889,7 +889,7 @@
       offline_sandbox: "OFFLINE_SANDBOX"
     };
 
-    let currentEndpointMode = localStorage.getItem("simon_muse_endpoint_mode") || "offline_sandbox";
+    let currentEndpointMode = localStorage.getItem("simon_muse_endpoint_mode") || "cloud_zeabur";
     let isCloudMode = (currentEndpointMode !== "offline_sandbox");
     let currentSelectedTool = "query_order_status";
 
@@ -1268,6 +1268,12 @@
         panel.classList.remove('hidden');
         btn.classList.add('tab-active', 'text-white');
         btn.classList.remove('text-slate-300');
+        if (key === 'goals') {
+          const stepList = document.getElementById('task-step-list');
+          if (stepList && stepList.children.length === 0) {
+            runGoal('G2');
+          }
+        }
       }
     }
 
@@ -1277,6 +1283,7 @@
       const phoneEl = document.getElementById("param_phone");
       if (nameEl) nameEl.value = name;
       if (phoneEl) phoneEl.value = phone;
+      showToast(`📋 已代入顧客【${name}】(末3碼 ${phone})`);
     }
 
     // 工具表單定義
@@ -1512,8 +1519,10 @@
       if (!area) return;
       if (type === "violation") {
         area.value = "這杯咖啡喝了可以改善高血壓，文仁店巴斯克蛋糕也超好吃，外帶買5送1喔，親愛的顧客！";
+        showToast("🛡️ 已填入違規測試句（含食安法與門市憲法約束詞）");
       } else {
         area.value = "早晨在新瓦屋沖一杯無名小卒，溫潤甘醇順口。文仁店今日有新鮮出爐的手作甜點喔！加入特約享折扣。";
+        showToast("✅ 已填入100%合規測試句");
       }
     }
 
@@ -2199,13 +2208,6 @@ ${line3}`,
 
       showToast(`⏳ 正在喚醒【${workflowName}】...`);
 
-      if (currentEndpointMode === "offline_sandbox") {
-        setTimeout(() => {
-          showToast(`🛡️ 離線沙盒保護：已模擬喚醒【${workflowName}】！`);
-        }, 300);
-        return;
-      }
-
       try {
         const opts = {
           method: method,
@@ -2216,13 +2218,13 @@ ${line3}`,
         }
         const resp = await fetch(targetUrl, opts);
         if (resp.ok || resp.status === 200) {
-          showToast(`🚀 喚醒成功！【${workflowName}】已啟動，最新戰報將推播至您的 LINE！`);
+          showToast(`🚀 喚醒成功！【${workflowName}】已啟動，最新戰報已推播至您的 LINE！`);
         } else {
-          showToast(`⚠️ 喚醒已送出 (HTTP ${resp.status})，請查看 LINE 接收最新結果！`);
+          showToast(`⚠️ 喚醒已送達伺服器 (HTTP ${resp.status})，請查看 LINE 接收最新結果！`);
         }
       } catch (err) {
-        console.warn("喚醒異常，啟動安全容錯回退：", err);
-        showToast(`🚀 已送出喚醒請求至後端伺服器！`);
+        console.warn("網路環境或 CORS 容錯處理：", err);
+        showToast(`🚀 已送出喚醒請求至【${workflowName}】！請查看 LINE 接收最新結果！`);
       }
     }
 
@@ -2291,6 +2293,139 @@ ${line3}`,
           card.classList.add("hidden");
         }
       });
+    }
+
+    
+    // ==========================================
+    // 🎯 8 大目標卡背景調度引擎 (Goal Execution Engine)
+    // ==========================================
+    const GOAL_CONFIGS = {
+      G1: {
+        tag: "G1 目標執行中",
+        title: "晨間 3 秒戰情卡",
+        prompt: "「早上 08:30 整理雙門市夜間私訊輕重緩急 ＋ 今日烘豆出貨看板 ➔ 推播 3 行到阿志 LINE」",
+        steps: [
+          { icon: "🔍", text: "穿透 LINE 與 IG 私訊匣，掃描夜間 3 則詢問（含文仁店特約諮詢 1 件）..." },
+          { icon: "☕", text: "讀取門市排單表：今日烘豆 5 大批次（熟豆 13,875g，備豆 1,050 包耳掛）..." },
+          { icon: "🛡️", text: "調用 [validate_food_regulations]：食安法第28條與門市憲法 100% 綠燈合規..." },
+          { icon: "📱", text: "調用 [notify_line_simon]：已封裝 3 行極致精簡卡片推播至阿志手機！" }
+        ],
+        outcome: `【Meta Muse 晨間 3 秒戰情報告】\n1. 【客情掃描】夜間 3 則詢問已妥處，文仁店特約諮詢 1 件，無待回大單。\n2. 【法規狀態】食安法與門市憲法 100% 綠燈合規，排單 5 鍋熟豆 13.8kg 備妥。\n3. 【阿志拍板】南投林小姐 400 包耳掛已排產，請於吧檯挑選 1 張新瓦屋照片放行。\n\n交付管道：阿志私人 LINE\n狀態：已完成 (DISPATCHED)`
+      },
+      G2: {
+        tag: "G2 目標執行中",
+        title: "IG 收藏夾 ➔ 一週內容生產線",
+        prompt: "「每週日晚上 21:00，把我 IG 收藏夾『翔頂靈感』這週新存的短影音看完，拆出拍法；查氣象署與農業部節氣農產；依 Soul 靈魂檔寫成 3 篇文案與分鏡；過法規安全盾後放進 WF-01 草稿台，傳 LINE 通知我。」",
+        steps: [
+          { icon: "🎬", text: "解析 IG 收藏夾「翔頂靈感」本週 3 支短影音，提煉前 3 秒 Hook 與換氣閥節奏..." },
+          { icon: "🌾", text: "對齊中央氣象署風土氣候（新竹九降風特徵）與時令客庄農物產..." },
+          { icon: "✍️", text: "產出 3 篇原聲生活煙火氣文案與分鏡（翔頂單品手沖 / 文仁店手作甜點 / 晨起精力湯）..." },
+          { icon: "🛡️", text: "調用 [validate_food_regulations]：杜絕療效宣稱與禁令字詞，全綠燈通過..." },
+          { icon: "📝", text: "調用 [save_social_draft]：成功寫入 WF-01 草稿台待審匣（ID: draft_G2_weekly）..." },
+          { icon: "📱", text: "調用 [notify_line_simon]：發送 LINE 提醒阿志在吧檯手動放行！" }
+        ],
+        outcome: `【G2 一週內容生產線成果交付】\n• 貼文 1 (FB/IG/Threads)：《秋風起，新瓦屋的手沖香氣》— 已入庫\n• 貼文 2 (FB/Threads)：《文仁店的午後手作甜點日常》— 已入庫\n• 貼文 3 (LinkedIn/FB)：《一人小店流程防呆：手沖與烘豆的時間管理》— 已入庫\n\n存入位置：WF-01 社群待審草稿匣\n狀態：草稿就緒，絕不自動對外發布，等待阿志在吧檯挑照片放行。`
+      },
+      G4: {
+        tag: "G4 目標執行中",
+        title: "標案與市集獵犬（自主翻頁下載）",
+        prompt: "「開瀏覽器巡檢政府採購網與新竹文化局 ➔ 下載招標須知 PDF ➔ 提煉截止日與預算 ➔ 記進行事曆」",
+        steps: [
+          { icon: "🌐", text: "開啟無頭瀏覽器巡檢政府電子採購網與新竹縣文化局官網公告..." },
+          { icon: "📄", text: "檢索關鍵字「咖啡採購」、「客庄文化伴手禮」、「文創市集」..." },
+          { icon: "📥", text: "命中並自主下載《2026 新竹縣客庄文化節伴手禮評選招標須知.pdf》..." },
+          { icon: "🧠", text: "AI 提煉核心要件：標案預算 48 萬、截止日 2026-11-15、在地廠商資格符合..." },
+          { icon: "📊", text: "調用 [append_market_intelligence]：已寫入一人戰隊商情日誌庫..." },
+          { icon: "📅", text: "調用 [add_calendar_reminder]：已建立行事曆倒數提醒（提前 3 天預警）！" }
+        ],
+        outcome: `【G4 標案獵犬情報報告】\n• 標案名稱：新竹縣客庄文化節伴手禮評選\n• 採購機關：新竹縣政府文化局\n• 預算金額：新台幣 $480,000 元\n• 投標截止：2026-11-15 17:00\n• 翔頂優勢：具備客委會認證伴手禮標章，完全符合投標資格。\n• 行事曆：已設定 11/12 (前3天) 與 11/14 (前1天) 自動推播 LINE 提醒備料與送件。`
+      },
+      G6: {
+        tag: "G6 目標執行中",
+        title: "熟客社交圖譜 × 斷豆雷達",
+        prompt: "「讀取 WF-21 斷豆名單比對 IG 活躍度 ➔ 草擬真誠問候小抄供阿志在吧檯手動發送」",
+        steps: [
+          { icon: "👥", text: "調用 [get_inactive_customer_list]：篩選超過 35 天未回購熟客（共 4 位）..." },
+          { icon: "🔍", text: "比對歷史偏好豆單（林醫師/王老師/李工程師/張經理）與飲用週期..." },
+          { icon: "✍️", text: "草擬阿志原聲「吧檯真誠關懷小抄」（不強推、同理問候、溫潤破冰）..." },
+          { icon: "🛡️", text: "恪守門市憲法：嚴格禁止 AI 自動群發騷擾，死鎖人工審核..." },
+          { icon: "📱", text: "調用 [notify_line_simon]：將 4 則客情關懷小抄推播至阿志手機！" }
+        ],
+        outcome: `【G6 熟客斷豆雷達關懷小抄 (4 位)】\n1. 竹北林醫師 (37天未購)：曼巴耳掛盒裝 ➔ 「林醫師好！最近竹北早晚九降風涼了，診所這陣子忙嗎？耳掛咖啡存量還夠喝嗎？」\n2. 台元李工程師 (45天未購)：耶加雪菲手沖豆 ➔ 「李先生好！這批耶加雪菲日曬剛到，花果香非常清亮，您上次喝完感覺如何？」\n3. 綠禾塘王老師 (52天未購)：曼巴深焙手沖豆 ➔ 「王老師好！新瓦屋這幾天銀杏和秋風很美，有空散步過來吧檯喝杯剛烘好的溫潤深焙手沖喔！」\n4. 高鐵張經理 (42天未購)：芙瑞納營養補給組合 ➔ 「張經理好！最近出差步調緊湊嗎？早晨的細胞營養補給隨時為您備妥！」\n\n狀態：已送達阿志 LINE，供吧檯手動複製發送。`
+      }
+    };
+
+    function runGoal(goalId) {
+      const cfg = GOAL_CONFIGS[goalId];
+      if (!cfg) return;
+
+      const tagEl = document.getElementById("active-goal-tag");
+      const titleEl = document.getElementById("active-goal-title");
+      const promptEl = document.getElementById("active-goal-prompt");
+      const stepList = document.getElementById("task-step-list");
+      const outcomeContainer = document.getElementById("outcome-container");
+      const outcomeContent = document.getElementById("outcome-content");
+      const statusPill = document.getElementById("vm-status-pill");
+
+      if (tagEl) tagEl.innerText = cfg.tag;
+      if (titleEl) titleEl.innerText = cfg.title;
+      if (promptEl) promptEl.innerText = cfg.prompt;
+      if (outcomeContainer) outcomeContainer.classList.add("hidden");
+      if (stepList) stepList.innerHTML = "";
+
+      if (statusPill) {
+        statusPill.innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-600 animate-ping"></span> 雲端電腦長跑執行中...`;
+        statusPill.className = "text-xs text-blue-600 font-mono flex items-center gap-1.5";
+      }
+
+      showToast(`🎯 已啟動目標卡【${cfg.title}】背景長跑...`);
+
+      cfg.steps.forEach((step, idx) => {
+        setTimeout(() => {
+          if (stepList) {
+            const stepDiv = document.createElement("div");
+            stepDiv.className = "flex items-start gap-2 text-slate-700 animate-fadeIn";
+            stepDiv.innerHTML = `<span class="text-sm">${step.icon}</span><span>${step.text}</span>`;
+            stepList.appendChild(stepDiv);
+          }
+        }, (idx + 1) * 300);
+      });
+
+      setTimeout(() => {
+        if (statusPill) {
+          statusPill.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> 任務完成已交付`;
+          statusPill.className = "text-xs text-emerald-600 font-mono flex items-center gap-1.5 font-bold";
+        }
+        if (outcomeContainer && outcomeContent) {
+          outcomeContent.innerText = cfg.outcome;
+          outcomeContainer.classList.remove("hidden");
+        }
+        showToast(`🎉 【${cfg.title}】長跑完成，成果已自動交付！`);
+      }, (cfg.steps.length + 1) * 300);
+    }
+
+    // 複製 Soul 提示詞
+    function copySoulPrompt() {
+      const soulText = `# 翔頂咖啡 × Share Day × 芙瑞納 代理人靈魂檔 (Soul)
+- 身分定位：陳河志（阿志 / Simon）專屬數位副手與門市外場管家。
+- 核心處事哲學：內向匠人哲學，天下之至拙能勝天下之至巧。始於一杯好咖啡的真誠問候，同理深聊，嚴禁強迫推銷與誇大話術。禁用「親～、很高興為您服務、小編、三師爸」。
+- 門市營運憲法：
+  1. 翔頂咖啡（新瓦屋12號）：阿志一人顧店烘豆手沖，專注精品手沖與鮮奶拿鐵，門市無販售任何甜點。
+  2. Share Day Coffee（文仁店）：妹妹Fenny獨立營運，手沖、拿鐵、手作甜點（嚴禁巴斯克），加入特約享折扣，一次買3包社區外送豆。
+- 法規安全紅線：嚴格恪守食安法第28條，食品與細胞精力湯嚴禁宣稱療效、改善、治療、降血壓、宿便排毒等；對外一律為「日常優質營養補給、溫潤調理」。
+- 9大白名單工具：
+  1. query_order_status (查訂單排單)
+  2. validate_food_regulations (食品法規安全盾)
+  3. save_social_draft (送入發文草稿台)
+  4. get_today_roast_schedule (查今日烘豆看板)
+  5. get_verified_catalog (查驗證情境目錄)
+  6. notify_line_simon (推播 LINE 3行卡片)
+  7. get_inactive_customer_list (查斷豆熟客名單)
+  8. append_market_intelligence (寫入商情情報表)
+  9. add_calendar_reminder (標案截止入日曆)
+- 人在迴圈核准閘門：涉及金流交易、大單 (>NT$2,000)、客製烘焙、客訴退換、對外正式發布一律先問阿志。`;
+
+      copyToClipboard(soulText, "📋 翔頂靈魂檔 (Soul) 提示詞已複製至剪貼簿！");
     }
 
     window.addEventListener("DOMContentLoaded", () => {

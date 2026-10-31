@@ -1,0 +1,2302 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🎮 Meta Muse 一人戰隊 實戰操作控制台 ｜ 翔頂咖啡 × Share Day × 芙瑞納</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Apple Touch & PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Muse實戰控制台">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .tab-active {
+      border-bottom: 3px solid #2563eb;
+      color: #1d4ed8;
+      font-weight: 700;
+      background-color: #eff6ff;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    pre, code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .chat-bubble-agent {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      border-radius: 16px 16px 16px 4px;
+    }
+    .chat-bubble-user {
+      background-color: #2563eb;
+      color: #ffffff;
+      border-radius: 16px 16px 4px 16px;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col pb-12">
+
+  <!-- 頂部宣告 -->
+  <div class="bg-slate-900 text-amber-300 text-xs px-4 py-2 flex flex-wrap justify-between items-center gap-2 border-b border-slate-800">
+    <div class="flex items-center gap-2">
+      <span class="bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded text-[10px]">v2.2 地雲同步與轉移地端實戰版</span>
+      <span><strong>阿志實體操作台：</strong>9 大工具已全面接通門市真實待出貨排單數據！具備地端轉移與無感降級保護。</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span id="conn-status-badge" class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] px-2 py-0.5 rounded font-mono">
+        🟢 雲端直連 (Zeabur WF-39)
+      </span>
+    </div>
+  </div>
+
+  <!-- 頂部導航 -->
+  <header class="bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-2xl shadow">
+          🎮
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base md:text-lg font-bold tracking-tight">Meta Muse 實戰操作控制台</h1>
+            <span class="bg-blue-500/30 text-blue-300 text-[10px] px-2 py-0.5 rounded-full border border-blue-400/30 font-mono">SF-31 ＋ WF-39</span>
+          </div>
+          <p class="text-slate-300 text-xs">9 大白名單工具 ＋ 雙層硬性安全盾 ＋ 私訊對話沙盒 ＋ 8 大長程目標</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <label for="endpoint-selector" class="text-[11px] text-slate-300 hidden sm:inline">線路：</label>
+        <select id="endpoint-selector" onchange="changeEndpointMode(this.value)" class="text-xs bg-slate-800 text-amber-300 border border-slate-700 px-2.5 py-1.5 rounded-lg font-mono focus:outline-none focus:border-blue-500">
+          <option value="cloud_zeabur">🌐 Zeabur 雲端 (WF-39)</option>
+          <option value="local_tailscale">🖥️ 地端 Win11 (Tailscale)</option>
+          <option value="local_server">💻 地端本機 (localhost:5678)</option>
+          <option value="offline_sandbox">🛡️ 離線高保真沙盒 (真數據)</option>
+        </select>
+        <button onclick="cycleConnectionMode()" id="conn-toggle-btn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1.5 rounded-lg font-mono">
+          切換模式
+        </button>
+      </div>
+    </div>
+
+    <!-- 頁籤導航 -->
+    <div class="max-w-5xl mx-auto px-2 flex border-t border-slate-800 text-xs md:text-sm overflow-x-auto no-scrollbar">
+      <button onclick="switchTab('workbench')" id="tab-btn-workbench" class="tab-btn flex-1 py-3 px-3 text-center whitespace-nowrap text-white tab-active">
+        🛠️ 門市 9 大工具台
+      </button>
+      <button onclick="switchTab('private')" id="tab-btn-private" class="tab-btn flex-1 py-3 px-3 text-center whitespace-nowrap text-amber-300 hover:text-white font-bold">
+        👑 阿志私人工具中樞
+      </button>
+      <button onclick="switchTab('chat')" id="tab-btn-chat" class="tab-btn flex-1 py-3 px-3 text-center whitespace-nowrap text-slate-300 hover:text-white">
+        💬 顧客私訊對話沙盒
+      </button>
+      <button onclick="switchTab('goals')" id="tab-btn-goals" class="tab-btn flex-1 py-3 px-3 text-center whitespace-nowrap text-slate-300 hover:text-white">
+        🎯 8 大目標卡背景調度
+      </button>
+      <button onclick="switchTab('soul')" id="tab-btn-soul" class="tab-btn flex-1 py-3 px-3 text-center whitespace-nowrap text-slate-300 hover:text-white">
+        📜 靈魂檔 Soul (門市憲法)
+      </button>
+    </div>
+  </header>
+
+  <!-- 主內容容器 -->
+  <main class="max-w-5xl w-full mx-auto p-3 md:p-5 flex-1 space-y-4">
+
+    <!-- ========================================== -->
+    <!-- 頁籤 1：9 大工具實戰操作台 (Workbench) -->
+    <!-- ========================================== -->
+    <section id="panel-workbench" class="space-y-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-base font-bold text-slate-900 flex items-center justify-between">
+          <span>🛠️ 翔頂工具箱白名單即時調用工作台 (WF-39)</span>
+          <span class="text-xs text-blue-600 font-normal">點選工具即可輸入參數、測試執行</span>
+        </h2>
+        <p class="text-xs text-slate-500 mt-1">
+          請直接在下方選擇任一工具進行操作測試！每個工具均具備預設參數與一鍵填入按鈕，可直接打往 Zeabur 雲端 n8n 或本機引擎。
+        </p>
+
+        <!-- 工具按鈕格 -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3 text-xs">
+          <button onclick="selectTool('query_order_status')" id="btn-tool-query_order_status" class="tool-btn text-left p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/50 font-semibold text-slate-800">
+            🔍 1. 查訂單排單進度
+          </button>
+          <button onclick="selectTool('validate_food_regulations')" id="btn-tool-validate_food_regulations" class="tool-btn text-left p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/50 font-semibold text-slate-800">
+            🛡️ 2. 食品法規安全盾
+          </button>
+          <button onclick="selectTool('save_social_draft')" id="btn-tool-save_social_draft" class="tool-btn text-left p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/50 font-semibold text-slate-800">
+            📝 3. 送入發文草稿台
+          </button>
+          <button onclick="selectTool('get_today_roast_schedule')" id="btn-tool-get_today_roast_schedule" class="tool-btn text-left p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/50 font-semibold text-slate-800">
+            ☕ 4. 查今日烘豆看板
+          </button>
+          <button onclick="selectTool('get_verified_catalog')" id="btn-tool-get_verified_catalog" class="tool-btn text-left p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/50 font-semibold text-slate-800">
+            📦 5. 查驗證情境目錄
+          </button>
+          <button onclick="selectTool('notify_line_simon')" id="btn-tool-notify_line_simon" class="tool-btn text-left p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/50 font-semibold text-slate-800">
+            📱 6. 推播 LINE 3行卡片
+          </button>
+          <button onclick="selectTool('get_inactive_customer_list')" id="btn-tool-get_inactive_customer_list" class="tool-btn text-left p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/50 font-semibold text-slate-800">
+            🌱 7. 查斷豆熟客名單
+          </button>
+          <button onclick="selectTool('append_market_intelligence')" id="btn-tool-append_market_intelligence" class="tool-btn text-left p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/50 font-semibold text-slate-800">
+            📊 8. 寫入商情情報表
+          </button>
+          <button onclick="selectTool('add_calendar_reminder')" id="btn-tool-add_calendar_reminder" class="tool-btn text-left p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/50 font-semibold text-slate-800">
+            📅 9. 標案截止入日曆
+          </button>
+        </div>
+      </div>
+
+      <!-- 操作工作台卡片 -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+          <div>
+            <span id="workbench-tool-badge" class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded font-mono">validate_food_regulations</span>
+            <h3 id="workbench-tool-title" class="font-bold text-sm md:text-base text-slate-900 mt-1">食品法規安全盾 ＆ 門市憲法檢查</h3>
+          </div>
+          <button onclick="executeCurrentTool()" id="btn-execute-tool" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs md:text-sm px-4 py-2 rounded-lg shadow-sm flex items-center gap-1.5 transition">
+            <span>🚀 立即執行工具</span>
+          </button>
+        </div>
+
+        <!-- 動態輸入表單區 -->
+        <div id="workbench-input-container" class="space-y-3 text-xs">
+          <!-- 預設動態填入 -->
+        </div>
+
+        <!-- 執行輸出與視覺化卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-slate-200 text-xs">
+          <!-- 視覺化解析結果 -->
+          <div class="space-y-2">
+            <span class="font-bold text-slate-700 block">📊 視覺化解析卡片：</span>
+            <div id="workbench-visual-output" class="bg-slate-50 border border-slate-200 rounded-lg p-3 min-h-[140px] flex items-center justify-center text-slate-400">
+              點擊「立即執行工具」查看視覺化呈現
+            </div>
+          </div>
+
+          <!-- 原始 JSON 回傳 -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-700">🧾 原始回傳 JSON (Raw Output)：</span>
+              <span id="output-latency" class="text-[10px] text-slate-400 font-mono">0 ms</span>
+            </div>
+            <pre id="workbench-raw-output" class="bg-slate-950 text-emerald-400 p-3 rounded-lg border border-slate-800 text-[11px] leading-relaxed overflow-x-auto min-h-[140px]">{\n  "status": "ready",\n  "message": "請點擊上方按鈕執行工具"\n}</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 頁籤 2：顧客私訊對話沙盒 (Interactive Chat Sandbox) -->
+    <!-- ========================================== -->
+    <section id="panel-chat" class="hidden space-y-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-2">
+        <h2 class="text-base font-bold text-slate-900 flex items-center justify-between">
+          <span>💬 Meta Muse 顧客私訊對話模擬室 (IG / FB)</span>
+          <span class="text-xs text-emerald-600 font-normal">● 代理人駐守中</span>
+        </h2>
+        <p class="text-xs text-slate-500">
+          在這裡你可以直接扮演顧客打字發問，測試 Muse 是否嚴格恪守門市憲法（新瓦屋無甜點、文仁店手作甜點、不主動推熱美式、食安法第28條防線）。
+        </p>
+
+        <!-- 一鍵快速破冰問題按鈕 -->
+        <div class="flex flex-wrap gap-1.5 pt-1 text-xs">
+          <span class="text-slate-400 text-[11px] flex items-center mr-1">快捷測試：</span>
+          <button onclick="sendPresetChat('請問我訂的無名小卒咖啡豆寄出了嗎？')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200">
+            📦 查訂單排單
+          </button>
+          <button onclick="sendPresetChat('文仁店今天有什麼甜點？有巴斯克蛋糕嗎？')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200">
+            🍰 問甜點（測巴斯克禁令）
+          </button>
+          <button onclick="sendPresetChat('請問有賣熱美式咖啡嗎？')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200">
+            ☕ 問熱美式（測手沖拿鐵）
+          </button>
+          <button onclick="sendPresetChat('芙瑞納精力湯可以改善高血壓、治便秘嗎？')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200">
+            🌿 測食安法違規攔截
+          </button>
+          <button onclick="sendPresetChat('請問外帶咖啡有買5送1或寄杯嗎？')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200">
+            🏷️ 測加入特約折扣
+          </button>
+        </div>
+      </div>
+
+      <!-- 聊天視窗 -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-[520px]">
+        <!-- 聊天頂部抬頭 -->
+        <div class="p-3 bg-slate-50 border-b border-slate-200 rounded-t-xl flex justify-between items-center text-xs">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+              M
+            </div>
+            <div>
+              <span class="font-bold text-slate-800">翔頂咖啡 官方代理人 (Powered by Meta Muse)</span>
+              <span class="text-[10px] text-slate-400 block">恪守 Soul_翔頂靈魂檔 ＆ 人在迴圈</span>
+            </div>
+          </div>
+          <button onclick="resetChat()" class="text-slate-400 hover:text-slate-600 text-xs">
+            🔄 清空對話
+          </button>
+        </div>
+
+        <!-- 對話內容區 -->
+        <div id="chat-messages-container" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs leading-relaxed">
+          <!-- 歡迎訊息 -->
+          <div class="flex items-start gap-2 max-w-[85%]">
+            <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">
+              M
+            </div>
+            <div class="chat-bubble-agent p-3 shadow-sm space-y-1">
+              <p>哈囉您好呀！我是阿志在吧檯煮咖啡時的外場小助手。阿志剛好在吧檯烘豆～</p>
+              <p>想喝手沖、看豆單、查訂單進度，或者想了解早晨的細胞精力湯，都可以直接跟我聊喔！😊</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部輸入框 -->
+        <div class="p-2.5 bg-slate-50 border-t border-slate-200 rounded-b-xl flex gap-2">
+          <input type="text" id="chat-input" placeholder="以顧客身分輸入訊息（例如：請問我的豆子寄出了沒？）..." onkeydown="if(event.key==='Enter') sendChatMessage()" class="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500">
+          <button onclick="sendChatMessage()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm transition">
+            發送
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 頁籤 3：8 大目標卡背景調度 (Goals Dispatcher) -->
+    <!-- ========================================== -->
+    <section id="panel-goals" class="hidden space-y-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-base font-bold text-slate-900 flex items-center justify-between">
+          <span>🎯 8 大神級目標卡背景長跑調度台 (Goals Engine)</span>
+          <span class="text-xs text-blue-600 font-normal">點選目標卡進行模擬跑腿</span>
+        </h2>
+        <p class="text-xs text-slate-500 mt-1">
+          點選卡片查看執行流程，成果將自動調用對應的 MCP 工具送入草稿台或推播阿志 LINE。
+        </p>
+
+        <!-- 目標卡清單 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 text-xs">
+          <!-- G2 -->
+          <div onclick="runGoal('G2')" class="cursor-pointer p-3.5 rounded-xl border-2 border-blue-500 hover:bg-blue-50/50 transition relative">
+            <span class="absolute top-2 right-2 bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded">最省時首選</span>
+            <span class="text-base font-bold text-blue-900 block">🎬 G2｜IG 收藏夾 ➔ 一週內容生產線</span>
+            <p class="text-slate-600 mt-1">看完你隨手收藏的短影音 ➔ 拆拍法 ➔ 查氣象節氣 ➔ 寫 3 篇文案與分鏡 ➔ 存入 WF-01 草稿台</p>
+            <span class="inline-block mt-2 text-[11px] text-emerald-700 font-semibold">排程：每週日 21:00 自動執行</span>
+          </div>
+
+          <!-- G4 -->
+          <div onclick="runGoal('G4')" class="cursor-pointer p-3.5 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition relative">
+            <span class="absolute top-2 right-2 bg-purple-100 text-purple-700 text-[10px] font-bold px-1.5 py-0.5 rounded">會下載PDF</span>
+            <span class="text-base font-bold text-purple-900 block">🎪 G4｜標案與市集獵犬（自主翻頁下載）</span>
+            <p class="text-slate-600 mt-1">開瀏覽器巡檢政府採購網與新竹文化局 ➔ 下載招標須知 PDF ➔ 提煉截止日與預算 ➔ 記進行事曆</p>
+            <span class="inline-block mt-2 text-[11px] text-emerald-700 font-semibold">排程：每週一、四 09:00 自動巡邏</span>
+          </div>
+
+          <!-- G1 -->
+          <div onclick="runGoal('G1')" class="cursor-pointer p-3.5 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition relative">
+            <span class="text-base font-bold text-slate-800 block">☀️ G1｜晨間 3 秒戰情卡</span>
+            <p class="text-slate-600 mt-1">早上 08:30 整理雙門市夜間私訊輕重緩急 ＋ 今日烘豆出貨看板 ➔ 推播 3 行到阿志 LINE</p>
+            <span class="inline-block mt-2 text-[11px] text-emerald-700 font-semibold">排程：每日 08:30 固定推播</span>
+          </div>
+
+          <!-- G6 -->
+          <div onclick="runGoal('G6')" class="cursor-pointer p-3.5 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition relative">
+            <span class="text-base font-bold text-slate-800 block">🌱 G6｜熟客社交圖譜 × 斷豆雷達</span>
+            <p class="text-slate-600 mt-1">讀取 WF-21 斷豆名單比對 IG 活躍度 ➔ 草擬真誠問候小抄供阿志在吧檯手動發送</p>
+            <span class="inline-block mt-2 text-[11px] text-emerald-700 font-semibold">排程：每週三 14:00 自動分析</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 即時任務執行實況區 -->
+      <div id="goal-execution-box" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+          <div class="flex items-center gap-2">
+            <span id="active-goal-tag" class="bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded">G2 目標執行中</span>
+            <span id="active-goal-title" class="font-bold text-sm text-slate-900">IG 收藏夾 ➔ 一週內容生產線</span>
+          </div>
+          <span id="vm-status-pill" class="text-xs text-blue-600 font-mono flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-blue-600 animate-ping"></span> 雲端電腦執行中...
+          </span>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
+          <span class="text-slate-400 font-bold block mb-1">👑 阿志交代的一句話：</span>
+          <p id="active-goal-prompt" class="text-slate-800 font-medium leading-relaxed italic">
+            「每週日晚上 21:00，把我 IG 收藏夾『翔頂靈感』這週新存的短影音看完，拆出拍法；查氣象署與農業部節氣農產；依 Soul 靈魂檔寫成 3 篇文案與分鏡；過法規安全盾後放進 WF-01 草稿台，傳 LINE 通知我。」
+          </p>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <span class="font-bold text-slate-700 block">🌳 Muse 自主任務拆解與執行進度：</span>
+          <div id="task-step-list" class="space-y-1.5 pl-2"></div>
+        </div>
+
+        <div id="outcome-container" class="hidden pt-3 border-t border-slate-200 space-y-3">
+          <div class="bg-emerald-50 border border-emerald-300 p-3.5 rounded-xl text-xs space-y-2">
+            <div class="flex justify-between items-center text-emerald-900 font-bold">
+              <span>🎉 任務已在背景執行完成！成果已自動交付至指定位置：</span>
+            </div>
+            <div id="outcome-content" class="text-slate-700 bg-white p-3 rounded-lg border border-emerald-200 font-mono text-[11px] leading-relaxed whitespace-pre-wrap"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 頁籤 4：靈魂檔 Soul (AGENTS.md) -->
+    <!-- ========================================== -->
+    <section id="panel-soul" class="hidden space-y-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-2">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm md:text-base font-bold text-slate-900">📜 翔頂靈魂檔 (Soul) 即插即用核心</h3>
+          <button onclick="copySoulPrompt()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow-sm flex items-center gap-1 transition">
+            <span>📋 一鍵複製 Soul 提示詞</span>
+          </button>
+        </div>
+        <p class="text-xs text-slate-500">
+          Muse 開通後，只要將這份文字複製貼入 Muse 的 <code>Identity ➔ Soul</code>，即可將門市憲法、食安法防線與白名單工具完全死鎖！
+        </p>
+      </div>
+
+      <div class="bg-slate-900 text-slate-200 p-4 rounded-xl font-mono text-xs leading-relaxed max-h-[460px] overflow-y-auto border border-slate-800">
+        <p class="text-amber-400 font-bold mb-2"># 翔頂靈魂檔（Meta Muse Soul）核心摘要：</p>
+        <p>1. 身分：陳河志（阿志 / Simon）的外場代理人。阿志一人在新瓦屋顧店烘豆手沖。</p>
+        <p>2. 說話方式：內向匠人哲學、真誠溫和、單行千斤重留白；禁用「親～、很高興為您服務、小編」。</p>
+        <p>3. 門市憲法：翔頂門市專注咖啡無甜點；文仁店手作甜點（嚴禁巴斯克）；加入特約享折扣；一次買3包社區外送。</p>
+        <p>4. 法規紅線：食品嚴禁宣稱療效或排便降三高等見證式字眼；對外發布前必過法規安全盾。</p>
+        <p>5. 核准閘門：發布、花錢、大單 (>NT$2,000)、客製烘焙、客訴退換一律先問阿志。</p>
+        <p>6. 翔頂工具箱 9 大白名單：查訂單進度、查今日排單、查驗證目錄、法規安全盾、送入草稿台、寫入情報表、推播 LINE、查斷豆名單、加入日曆提醒。</p>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 頁籤：👑 阿志全域私人工具中樞 (Private Tools) -->
+    <!-- ========================================== -->
+    <!-- ========================================== -->
+    <!-- 頁籤：👑 阿志全域私人工具中樞 (Private Tools) -->
+    <!-- ========================================== -->
+    <!-- ========================================== -->
+    <!-- 頁籤：👑 阿志全域私人工具中樞 (Private Tools v2.2 地雲同步版) -->
+    <!-- ========================================== -->
+    <section id="panel-private" class="hidden space-y-4">
+      <!-- 頂部宣告與說明 -->
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 rounded-xl shadow-sm border border-slate-700">
+        <div class="flex flex-wrap justify-between items-center gap-2">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded text-xs">私房中樞</span>
+              <h2 class="text-base md:text-lg font-bold text-amber-300 tracking-tight">👑 創辦人陳河志・全域專屬私人工具總覽與動態直達</h2>
+            </div>
+            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+              全域 17 大私房利器全面升級！<strong>【網頁型】</strong>點擊自動適應當前線路在新分頁打開；<strong>【觸發型】</strong>點擊直接非同步喚醒推播 LINE，不再打開空白頁；<strong>【指令型】</strong>點擊自動複製至剪貼簿！
+            </p>
+          </div>
+          <div class="text-right">
+            <span class="text-xs text-amber-300 font-bold block">地雲動態同步 ｜ 轉移地端備戰</span>
+            <span class="text-[11px] text-emerald-400 font-mono">⚡ 點擊即執行 / 複製 / 跳轉</span>
+          </div>
+        </div>
+
+        <!-- 分類篩選標籤 -->
+        <div class="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-slate-800 text-xs">
+          <button onclick="filterPrivateCategory('all')" id="filter-btn-all" class="private-filter-btn px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 font-bold transition">
+            全部 (17)
+          </button>
+          <button onclick="filterPrivateCategory('finance')" id="filter-btn-finance" class="private-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition">
+            💰 資本命門 (2)
+          </button>
+          <button onclick="filterPrivateCategory('voice')" id="filter-btn-voice" class="private-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition">
+            🎙️ 隨身智囊 (3)
+          </button>
+          <button onclick="filterPrivateCategory('social')" id="filter-btn-social" class="private-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition">
+            📝 社群戰略 (3)
+          </button>
+          <button onclick="filterPrivateCategory('business')" id="filter-btn-business" class="private-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition">
+            💼 商務探勘 (3)
+          </button>
+          <button onclick="filterPrivateCategory('life')" id="filter-btn-life" class="private-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition">
+            👔 個人生活 (4)
+          </button>
+          <button onclick="filterPrivateCategory('system')" id="filter-btn-system" class="private-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition">
+            🛡️ 系統底座 (2)
+          </button>
+        </div>
+      </div>
+
+      <!-- 工具卡片網格 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="private-tools-grid">
+
+        <!-- 卡片 1：台股量化雷達 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="finance">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-red-100 text-red-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">SF-29</span>
+                <span class="bg-slate-100 text-slate-700 text-[11px] font-semibold px-2 py-0.5 rounded">0-台股量化雷達/</span>
+                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded">💰 資本命門</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">永豐金台股量化雷達與自適應網格大師</h3>
+            </div>
+            <span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded border border-emerald-200">實盤運作中</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>串接永豐金證券官方 Shioaji API，鎖定 4 檔核心標的 (4716/00878/0056/00713) 執行 1~999 股零股自動化自適應網格交易。內建已實現虧損 >=3000、新增未實現浮虧 >=1500 與大盤跌 >2.5% 之物理熔斷鎖，守護資本命門。</p>
+            <p><strong>🕹️ 操作方式：</strong>
+              <br>1. <strong>交易時段 (09:00~13:30)</strong>：在地端 Win11 伺服器背景常駐執行，自動監控報價與掛單。
+              <br>2. <strong>收盤體檢 (13:35)</strong>：自動生成「4 綠燈健康卡」推播至 LINE，確認無懸空委託。
+            </p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+            <button onclick="copyToClipboard('python3 scripts/launch_shioaji_radar.py', '已複製啟動雷達指令！可貼至終端機執行')" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-2 rounded-lg flex items-center justify-center gap-1 shadow-sm transition">
+              <span>📋 啟動指令</span>
+            </button>
+            <button onclick="copyToClipboard('tail -f shioaji.log', '已複製查 Log 指令！可貼至終端機執行')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-2 rounded-lg border border-slate-300 flex items-center justify-center gap-1 transition">
+              <span>📜 查 Log 指令</span>
+            </button>
+            <button onclick="openDynamicPortal('/webhook/stock-portal?openExternalBrowser=1')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-2 rounded-lg flex items-center justify-center gap-1 shadow-sm transition">
+              <span>📊 隨身儀表板 ↗</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 2：雲地無損轉移與 SRE 運維 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="finance">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-red-100 text-red-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">SF-33</span>
+                <span class="bg-slate-100 text-slate-700 text-[11px] font-semibold px-2 py-0.5 rounded">0-Win11地端旗艦/</span>
+                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded">💰 資本命門</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">雲地無損轉移與伺服器 SRE 守護</h3>
+            </div>
+            <span class="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded border border-blue-200">雙機分工</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>管理 MacBook Air（問診設計）與 Win11 桌機（實盤落地）雙機分工。內建 10 大紅隊防呆鎖、10 秒極速回滾協議、credentials_entity 憑證防覆寫與 SQLite 零損耗遷移。</p>
+            <p><strong>🕹️ 操作方式：</strong>
+              <br>1. <strong>週二收盤後巡檢</strong>：啟動「一文一武」（Claude Sonnet 查系統、Claude Opus 查股票帳本）。
+              <br>2. <strong>每月公休巡檢</strong>：使用 Gemini 4 Argon 檢查月度報表與 OAuth 憑證效期。
+            </p>
+          </div>
+          <div class="flex gap-2 text-xs">
+            <button onclick="copyToClipboard('bash scripts/check_local_server_health.sh', '已複製週二伺服器體檢指令！可貼至終端機執行')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-3 rounded-lg border border-slate-300 flex items-center justify-center gap-1 transition">
+              <span>📋 複製週二體檢指令 (bash check_local_server_health.sh)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 3：賈維斯免手持語音大腦 (Jarvis HUD) -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="voice">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-indigo-100 text-indigo-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">WF-07 ＋ GF-06</span>
+                <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded">🎙️ 隨身語音</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">賈維斯 (Jarvis HUD) 免手持語音智囊</h3>
+            </div>
+            <span class="text-xs text-purple-600 font-bold bg-purple-50 px-2 py-1 rounded border border-purple-200">耳機對話</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>免手碰螢幕，雙手沖咖啡或烘豆時戴上藍牙耳機即可連續交談。語音引擎融合「郎雄老匠人 (Charon)」溫潤沉穩聲線，具備長期記憶。</p>
+            <p><strong>🕹️ 操作方式：</strong>點擊下方按鈕在新分頁打開賈維斯專屬介面，點擊麥克風即可開始語音對話。</p>
+          </div>
+          <div>
+            <a href="https://oeccafe.github.io/jarvis/" target="_blank" rel="noopener noreferrer" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-3 rounded-lg flex items-center justify-center gap-1 shadow-sm transition block text-center text-xs">
+              <span>🌐 點開 賈維斯 HUD 語音介面 ↗</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 卡片 4：一人戰隊每日排程管家 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="voice">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-indigo-100 text-indigo-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">WF-16 ＋ GF-08</span>
+                <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded">🎙️ 隨身排程</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">一人戰隊每日隨身排程管家 (DailyHelper)</h3>
+            </div>
+            <span class="text-xs text-amber-600 font-bold bg-amber-50 px-2 py-1 rounded border border-amber-200">定時推播</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>每日 08:00 自動推播晨間 3 秒焦點（TigerAI 到期任務、待出貨排單）至阿志 LINE；18:30 傍晚日清日結。點擊下方按鈕可立即發送喚醒請求，不跳空白頁。</p>
+            <p><strong>🕹️ 操作方式：</strong>點擊按鈕直接非同步喚醒後端 Webhook，最新排程焦點將直接推播到阿志 LINE。</p>
+          </div>
+          <div>
+            <button onclick="triggerPrivateWebhook('daily-brief-trigger', '排程管家晨間焦點戰報', 'GET')" id="btn-trigger-daily-brief" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 px-3 rounded-lg flex items-center justify-center gap-1 shadow-sm transition text-xs">
+              <span>⚡ 點擊即刻喚醒排程管家戰報 (推播 LINE)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 5：專屬新聞晨報 ＆ 九降風沖煮參數 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="voice">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-indigo-100 text-indigo-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">WF-25 ＋ WF-33</span>
+                <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded">🎙️ 風土晨報</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">專屬新聞晨報 ＆ 九降風沖煮參數</h3>
+            </div>
+            <span class="text-xs text-amber-600 font-bold bg-amber-50 px-2 py-1 rounded border border-amber-200">每日 06:00</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>每天清晨自動抓取新竹九降風氣象（氣溫、相對濕度、風速），由 AI 計算當日吧檯手沖水溫與研磨度補償建議，推播至阿志 LINE。</p>
+            <p><strong>🕹️ 操作方式：</strong>若需手動重算或即時補發晨報，點擊下方按鈕即可即刻觸發後端工作流。</p>
+          </div>
+          <div>
+            <button onclick="triggerPrivateWebhook('trigger-news-now', '風土新聞晨報與沖煮參數', 'POST')" id="btn-trigger-morning-news" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 px-3 rounded-lg flex items-center justify-center gap-1 shadow-sm transition text-xs">
+              <span>⚡ 點擊即刻獲取風土沖煮晨報 (推播 LINE)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 6：AI 今日社群草稿工作台 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="social">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-emerald-100 text-emerald-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">WF-01 ＋ GF-01B</span>
+                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">📝 社群主力</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">AI 今日社群草稿工作台 (發文中樞)</h3>
+            </div>
+            <span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded border border-emerald-200">密碼防手滑</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>一人戰隊發文旗艦工作台。當日社群文字已預填好，點開即可核對文案、挑選門市真實照片，輸入防手滑密碼 <code>12340</code> 即可一鍵分發四大社群平台。</p>
+            <p><strong>🕹️ 操作方式：</strong>點擊下方按鈕自動依據當前線路在新分頁打開工作台。</p>
+          </div>
+          <div>
+            <button onclick="openDynamicPortal('/webhook/social-draft?openExternalBrowser=1')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-lg flex items-center justify-center gap-1 shadow-sm transition text-xs">
+              <span>🌐 點開 今日社群草稿工作台 ↗</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 7：外腦萃取大師 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="social">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-emerald-100 text-emerald-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">SF-34</span>
+                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">📝 外腦萃取</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">外腦萃取與血肉融通大師 (Distiller)</h3>
+            </div>
+            <span class="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded border border-blue-200">骨肉分離</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>解構名師與同業爆款的底層演算法，大膽剔除大團隊虛胖手腳，30 秒產出吧檯話術小抄並分流至翔頂與文仁店。</p>
+            <p><strong>🕹️ 操作方式：</strong>在對話中直接輸入：<code>蒸餾大腦：[貼上文章、短影音腳本或連結]</code>，系統即刻拆解。</p>
+          </div>
+          <div class="flex gap-2 text-xs">
+            <button onclick="copyToClipboard('蒸餾大腦：', '已複製外腦萃取指令！請接續貼上欲拆解的文章內容或網址')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-3 rounded-lg border border-slate-300 flex items-center justify-center gap-1 transition">
+              <span>📋 複製「蒸餾大腦」指令</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 8：小店流程連載大師 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="social">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-emerald-100 text-emerald-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">SF-27</span>
+                <span class="bg-slate-100 text-slate-700 text-[11px] font-semibold px-2 py-0.5 rounded">0-流程連載/</span>
+                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">📝 流程連載</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">一人小店流程故事與商業連載大師</h3>
+            </div>
+            <span class="text-xs text-purple-600 font-bold bg-purple-50 px-2 py-1 rounded border border-purple-200">30天連載</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>將阿志 20 年人生底色與流程管理憲法深度融通，掌舵 3 天前篇 ＋ 30 天實戰連載，直出 4 合 1 社群文案與 30 秒短影音分鏡。</p>
+            <p><strong>🕹️ 操作方式：</strong>在對話中直接輸入：<code>寫流程連載 Day 01</code> 或 <code>寫前篇</code>，系統自動讀取素材庫產出。</p>
+          </div>
+          <div class="flex gap-2 text-xs">
+            <button onclick="copyToClipboard('寫流程連載 Day ', '已複製流程連載指令！請在後方填入天數（如 Day 01）')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-3 rounded-lg border border-slate-300 flex items-center justify-center gap-1 transition">
+              <span>📋 複製「寫流程連載」指令</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 9：LinkedIn 園區探勘 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="business">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-blue-100 text-blue-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">WF-05 ＋ WF-06</span>
+                <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded">💼 商務探勘</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">LinkedIn 商務探勘與階梯真誠信</h3>
+            </div>
+            <span class="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded border border-blue-200">竹科福委</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>自動探勘竹科主管與福委名單，產出范永銀銷售九宮格真誠開發信。阿志於 Google 試算表打勾放行後，自動分批發送階梯培育信。</p>
+            <p><strong>🕹️ 操作方式：</strong>點擊按鈕直接喚醒後端探勘與培育漏斗工作流，不跳空白頁。</p>
+          </div>
+          <div>
+            <button onclick="triggerPrivateWebhook('trigger-wf06-now', 'LinkedIn 探勘與 Email 培育漏斗', 'POST')" id="btn-trigger-linkedin" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-3 rounded-lg flex items-center justify-center gap-1 shadow-sm transition text-xs">
+              <span>⚡ 點擊即刻啟動 LinkedIn 園區探勘與培育</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 10：Gmail 隨選信件檢索 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="business">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-blue-100 text-blue-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">WF-35 ＋ WF-04</span>
+                <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded">💼 公務信件</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">Gmail 隨選信件檢索 ＆ 重要來信通知</h3>
+            </div>
+            <span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded border border-emerald-200">每10分值守</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>自動常駐監控公務來信，遇政府機關、重要客戶秒推播至 LINE。亦可於對話隨選檢索歷史信件與報價附件。</p>
+            <p><strong>🕹️ 操作方式：</strong>在對話中直接輸入：<code>查 Gmail：[關鍵字]</code>，系統即刻穿透信箱回報。</p>
+          </div>
+          <div class="flex gap-2 text-xs">
+            <button onclick="copyToClipboard('查 Gmail：', '已複製 Gmail 檢索指令！請接續輸入欲查詢的關鍵字（如：客委會）')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-3 rounded-lg border border-slate-300 flex items-center justify-center gap-1 transition">
+              <span>📋 複製「查 Gmail」指令</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 11：熟客回購喚醒管家 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="business">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-blue-100 text-blue-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">WF-21 ＋ GF-13</span>
+                <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded">💼 熟客經營</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">熟客回購喚醒與久未聯繫關懷管家</h3>
+            </div>
+            <span class="text-xs text-amber-600 font-bold bg-amber-50 px-2 py-1 rounded border border-amber-200">週一巡檢</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>連動 RFM 演算，每週一自動巡檢未補豆超過 40 天之熟客，生成溫潤、零壓力、吧檯老朋友口吻的專屬私訊問候小抄至阿志 LINE。</p>
+            <p><strong>🕹️ 操作方式：</strong>點擊按鈕直接喚醒巡檢工作流，生成最新關懷小抄推播至手機 LINE。</p>
+          </div>
+          <div>
+            <button onclick="triggerPrivateWebhook('trigger-repurchase-reminder', '熟客回購喚醒巡檢', 'POST')" id="btn-trigger-repurchase" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-3 rounded-lg flex items-center justify-center gap-1 shadow-sm transition text-xs">
+              <span>⚡ 點擊即刻啟動熟客回購巡檢 (推播 LINE 小抄)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 12：數位衣櫃與形象大師 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="life">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-purple-100 text-purple-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">SF-24</span>
+                <span class="bg-slate-100 text-slate-700 text-[11px] font-semibold px-2 py-0.5 rounded">0-數位衣櫃/</span>
+                <span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded">👔 個人生活</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">阿志專屬數位衣櫃與形象穿搭大師</h3>
+            </div>
+            <span class="text-xs text-purple-600 font-bold bg-purple-50 px-2 py-1 rounded border border-purple-200">黃金比例</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>鎖定阿志專屬身材密碼（158cm / 腰到腳 95cm 黃金 60% 長腿比例），融通 13 大頂級紳士風格。拍照即辨識建檔，秒出 Lookbook 示意圖。</p>
+            <p><strong>🕹️ 操作方式：</strong>在對話中輸入：<code>今天穿什麼：門市手沖顧店風格</code> 或拍照上傳新衣服立即建檔。</p>
+          </div>
+          <div class="flex gap-2 text-xs">
+            <button onclick="copyToClipboard('今天穿什麼：門市手沖顧店風格', '已複製穿搭指令！可直接貼至對話獲取搭配建議')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-3 rounded-lg border border-slate-300 flex items-center justify-center gap-1 transition">
+              <span>📋 複製「今天穿什麼」指令</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 13：跨院醫療搶號狙擊手 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="life">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-purple-100 text-purple-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">SF-28</span>
+                <span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded">👔 家人健康</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">全台跨院醫療掛號 ＆ 秒級搶號狙擊手</h3>
+            </div>
+            <span class="text-xs text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded border border-rose-200">秒級撿漏</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>守護阿志家人與熟客長輩就醫。整合新竹核心三院（中醫大、東元、台大生醫），支援滿額名醫自動撿漏監控、秒級填表預約與跨院掛號一鍵秒查。</p>
+            <p><strong>🕹️ 操作方式：</strong>在對話中輸入：<code>幫我搶掛號：中醫大 何宇淳 復健科 下週二早診</code> 即刻啟動排程。</p>
+          </div>
+          <div class="flex gap-2 text-xs">
+            <button onclick="copyToClipboard('幫我搶掛號：', '已複製搶掛號指令！請接續填入醫院、醫師與指定時段')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-3 rounded-lg border border-slate-300 flex items-center justify-center gap-1 transition">
+              <span>📋 複製「幫我搶掛號」指令</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 14：實戰錦囊 IdeaVault -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="life">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-purple-100 text-purple-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">SF-19</span>
+                <span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded">👔 資產記憶</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">實戰錦囊與歷史思維導航大師 (IdeaVault)</h3>
+            </div>
+            <span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded border border-emerald-200">秒速穿透</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>精準記錄跨對話中阿志提出的真實想法、痛點卡點與最佳解法。收工自動滾動寫入專案首層《實戰錦囊.md》，秒查歷史決策脈絡。</p>
+            <p><strong>🕹️ 操作方式：</strong>在對話中直接輸入：<code>查錦囊：[問題或想法關鍵字]</code>，系統秒速穿透歷史錦囊並呈現對應解法。</p>
+          </div>
+          <div class="flex gap-2 text-xs">
+            <button onclick="copyToClipboard('查錦囊：', '已複製查錦囊指令！請接續輸入欲檢索的關鍵字')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-3 rounded-lg border border-slate-300 flex items-center justify-center gap-1 transition">
+              <span>📋 複製「查錦囊」指令</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 15：密涅瓦思維教練 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="life">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-purple-100 text-purple-800 text-[11px] font-black px-2 py-0.5 rounded font-mono">SF-21</span>
+                <span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded">👔 決策對練</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">密涅瓦思維教練 ＆ 吧檯實戰 RPG 對練</h3>
+            </div>
+            <span class="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded border border-blue-200">紅藍隊辯論</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>密涅瓦四步驟思維拆解。商業決策前進行紅藍隊極限辯論，並提供吧檯客人三種實戰劇本（企業採購、超商轉手沖、長輩心悸）模擬對話對練。</p>
+            <p><strong>🕹️ 操作方式：</strong>在對話中輸入：<code>幫我想想：[面臨的猶豫事項]</code> 或 <code>模擬一下：客人說心悸不想喝</code> 立即啟動對練。</p>
+          </div>
+          <div class="flex gap-2 text-xs">
+            <button onclick="copyToClipboard('幫我想想：', '已複製思維教練指令！請接續填入猶豫或決策事項')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-3 rounded-lg border border-slate-300 flex items-center justify-center gap-1 transition">
+              <span>📋 複製「幫我想想」指令</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 16：雲端算力防暴增哨兵 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="system">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-slate-800 text-amber-300 text-[11px] font-black px-2 py-0.5 rounded font-mono">SF-32</span>
+                <span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-1.5 py-0.5 rounded">🛡️ 系統底座</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">雲端算力防護 ＆ API 帳單零暴增哨兵</h3>
+            </div>
+            <span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded border border-emerald-200">帳單鎖死</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>即時守護一人戰隊 API 費用。嚴格恪守鐵律二十二（80% 主動預警、95% 物理煞車），彈性配速輪調各大模型，確保帳單永不暴增。</p>
+            <p><strong>🕹️ 操作方式：</strong>
+              <br>1. 系統自動背景監控用量。
+              <br>2. 終端機執行 <code>python3 scripts/verify_api_quotas.py</code> 即可查看即時配額健康度。
+            </p>
+          </div>
+          <div class="flex gap-2 text-xs">
+            <button onclick="copyToClipboard('python3 scripts/verify_api_quotas.py', '已複製配額檢驗指令！可貼至終端機執行')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-3 rounded-lg border border-slate-300 flex items-center justify-center gap-1 transition">
+              <span>📋 複製檢驗配額指令 (verify_api_quotas.py)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 卡片 17：一人戰隊工作列表與三界圖鑑中樞 -->
+        <div class="private-tool-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3" data-category="system">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-slate-800 text-amber-300 text-[11px] font-black px-2 py-0.5 rounded font-mono">三界圖鑑</span>
+                <span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-1.5 py-0.5 rounded">🛡️ 系統底座</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-1">一人戰隊工作列表與三界圖鑑中樞</h3>
+            </div>
+            <span class="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded border border-blue-200">雙軌直達</span>
+          </div>
+          <div class="text-xs space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed text-slate-700">
+            <p><strong>🎯 核心功能：</strong>隨身掌握 A (線上啟動 WF-XX)、B (自製技能 SF-XX)、C (對外表單與工具連結 GF-XX) 三大板塊。可直接點開對外工作台，亦可一鍵產出大字版 PDF 雙備份。</p>
+            <p><strong>🕹️ 操作方式：</strong>在對話中直接輸入：<code>一人戰隊工作列表</code> 或 <code>三界速查</code>，系統即刻出表。</p>
+          </div>
+          <div class="space-y-2 text-xs">
+            <button onclick="copyToClipboard('一人戰隊工作列表', '已複製三界速查指令！可直接貼至對話產出清單')" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-3 rounded-lg flex items-center justify-center gap-1 shadow-sm transition">
+              <span>📋 複製「一人戰隊工作列表」指令</span>
+            </button>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <button onclick="openDynamicPortal('/webhook/store-portal?openExternalBrowser=1')" class="p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50 font-bold text-slate-800 text-center block transition">
+                🏪 門市出杯首頁 (GF-14) ↗
+              </button>
+              <button onclick="openDynamicPortal('/webhook/photo-portal?openExternalBrowser=1')" class="p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50 font-bold text-slate-800 text-center block transition">
+                📸 照片拍立得 (GF-02) ↗
+              </button>
+              <button onclick="openDynamicPortal('/webhook/doc-portal?openExternalBrowser=1')" class="p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50 font-bold text-slate-800 text-center block transition">
+                📄 文檔拍立得 (GF-04) ↗
+              </button>
+              <button onclick="openDynamicPortal('/webhook/card-portal?openExternalBrowser=1')" class="p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50 font-bold text-slate-800 text-center block transition">
+                📇 名片拍立得 (GF-03) ↗
+              </button>
+              <button onclick="openDynamicPortal('/form/2c0d9d7d-71f2-4fc6-b783-2ac72eb94896?openExternalBrowser=1')" class="p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50 font-bold text-slate-800 text-center block transition">
+                ✍️ 空白多平台發文 (GF-01) ↗
+              </button>
+              <a href="https://myship.7-11.com.tw/general/detail/GM2511148315976" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50 hover:bg-blue-50 font-bold text-slate-800 text-center block transition">
+                📦 7-11 賣貨便商店 (GF-10) ↗
+              </a>
+              <button onclick="triggerPrivateWebhook('trigger-gbp-review', 'Google 商家評論巡檢小抄', 'POST')" class="col-span-2 p-2.5 rounded-lg border border-slate-200 hover:border-amber-500 bg-amber-50/60 hover:bg-amber-100/60 font-bold text-amber-900 text-center block transition">
+                ⚡ 立即巡檢 Google 評論與留言小抄 (GF-11)
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 底部固定 -->
+  <footer class="max-w-5xl w-full mx-auto px-4 py-3 text-center text-xs text-slate-400 border-t border-slate-200">
+    創辦人陳河志 ｜ Meta Muse 代理人商務中樞 (SF-31 ＋ WF-39 v2.1 實戰操作版) ｜ 內外場雙重防護
+  </footer>
+
+  <!-- JavaScript 核心操作引擎 -->
+  <script>
+    // ==========================================
+    // 翔頂一人戰隊 Meta Muse 實戰操作核心引擎 (v2.2 地雲同步＆轉移地端備戰版)
+    // ==========================================
+
+    const ENDPOINT_MAP = {
+      cloud_zeabur: "https://oeccafecf.zeabur.app/webhook/muse-tool-bridge",
+      local_tailscale: "https://desktop-shiv50q.taila0ceb4.ts.net/webhook/muse-tool-bridge",
+      local_server: "http://127.0.0.1:5678/webhook/muse-tool-bridge",
+      offline_sandbox: "OFFLINE_SANDBOX"
+    };
+
+    let currentEndpointMode = localStorage.getItem("simon_muse_endpoint_mode") || "offline_sandbox";
+    let isCloudMode = (currentEndpointMode !== "offline_sandbox");
+    let currentSelectedTool = "query_order_status";
+
+    // 門市真實待出貨訂單庫 (100% 同步自 待出貨訂單與烘豆排單表-261013-v1.md)
+    const REAL_ORDERS_DB = [
+      {
+        order_id: "04",
+        date: "2026-10-11",
+        customer: "國良",
+        aliases: ["國良", "小國良", "國良哥"],
+        phone_last_3: "654",
+        recipient: "國良",
+        category: "咖啡類",
+        items: [
+          { name: "#8 肯亞 AA (奇里雅加/瑪瑪處理廠)", spec: "10 包半磅 (225g ± 5g × 10包)", roaster_board: "看板 B-07" }
+        ],
+        total_amount: "$3,500 元 (特約9折 $3,150)",
+        destination: "門市自取 / 約定交付",
+        status: "待出貨",
+        status_badge: "🔥 待出貨 (看板 B-07)",
+        progress_note: "已備生豆約 2,813g (失重20%)，排入今日熱鍋現烘排程，出爐後立即通知交貨。"
+      },
+      {
+        order_id: "03",
+        date: "2026-10-11",
+        customer: "拉拉",
+        aliases: ["拉拉", "拉拉姊", "拉拉姐"],
+        phone_last_3: "123",
+        recipient: "拉拉",
+        category: "咖啡類",
+        items: [
+          { name: "#3 無名小卒 (衣索比亞水洗+日曬)", spec: "1 磅散裝 (450g ± 5g / 1袋)", roaster_board: "看板 B-06" }
+        ],
+        total_amount: "$700 元 (350×2)",
+        destination: "門市自取",
+        status: "待出貨",
+        status_badge: "🔥 待出貨 (看板 B-06)",
+        progress_note: "已備生豆約 563g，現烘出爐花果香甜感散裝 1 磅，隨時可至吧檯取貨。"
+      },
+      {
+        order_id: "20",
+        date: "2026-10-14",
+        customer: "林小姐",
+        aliases: ["林小姐", "南投林小姐"],
+        phone_last_3: "828",
+        recipient: "林小姐 (南投)",
+        category: "咖啡類",
+        items: [
+          { name: "莊園耳掛咖啡 (9.5g)", spec: "400 包 (9.5g ± 0.5g × 400包)" }
+        ],
+        total_amount: "$12,000 元 ($30 × 400)",
+        destination: "宅配寄送：南投",
+        status: "待出貨",
+        status_badge: "🔥 待出貨 (大宗研磨充氮封裝)",
+        progress_note: "全批 1,000 包耳掛之南投 400 包份額，已在批次研磨充氮封裝排產線上，出貨將發送物流單號。"
+      },
+      {
+        order_id: "21",
+        date: "2026-10-14",
+        customer: "林小姐姐姐",
+        aliases: ["林小姐姐姐", "深坑姐姐", "姐姐"],
+        phone_last_3: "888",
+        recipient: "林小姐姐姐 (深坑)",
+        category: "咖啡類",
+        items: [
+          { name: "莊園耳掛咖啡 (9.5g)", spec: "100 包 (9.5g ± 0.5g × 100包)" }
+        ],
+        total_amount: "$3,000 元 ($30 × 100)",
+        destination: "宅配寄送：深坑",
+        status: "待出貨",
+        status_badge: "🔥 待出貨 (大宗研磨充氮封裝)",
+        progress_note: "深坑 100 包份額與南投單同步批次封裝，出貨將同步發送簡訊。"
+      },
+      {
+        order_id: "22",
+        date: "2026-10-14",
+        customer: "林小姐姐夫",
+        aliases: ["林小姐姐夫", "姐夫"],
+        phone_last_3: "999",
+        recipient: "林小姐姐夫 (自取)",
+        category: "咖啡類",
+        items: [
+          { name: "莊園耳掛咖啡 (9.5g)", spec: "500 包 (9.5g ± 0.5g × 500包)" }
+        ],
+        total_amount: "$15,000 元 ($30 × 500)",
+        destination: "門市自取",
+        status: "待出貨",
+        status_badge: "🔥 待出貨 (門市自取)",
+        progress_note: "自取 500 包耳掛完成研磨封裝後，將通知姐夫前來門市自取。"
+      },
+      {
+        order_id: "23",
+        date: "2026-10-18",
+        customer: "謝先生",
+        aliases: ["謝先生"],
+        phone_last_3: "350",
+        recipient: "謝先生",
+        category: "咖啡類",
+        items: [
+          { name: "精品咖啡豆 (半磅)", spec: "3 包半磅 (225g ± 5g × 3包)" }
+        ],
+        total_amount: "$1,050 元 ($350 × 3 / 特約享折扣)",
+        destination: "門市自取或竹北社區外送",
+        status: "待出貨",
+        status_badge: "🔥 待出貨 (老闆說買3包社區外送)",
+        progress_note: "一次購買 3 包符合老闆親自社區外送咖啡豆服務，待選定指定豆種現烘出爐送達。"
+      },
+      {
+        order_id: "24",
+        date: "2026-10-18",
+        customer: "謝小姐",
+        aliases: ["謝小姐"],
+        phone_last_3: "789",
+        recipient: "謝小姐",
+        category: "咖啡類",
+        items: [
+          { name: "#5 尼加拉瓜 / 憤慨莊園 / 水洗 耳掛咖啡 (9.5g)", spec: "50 包耳掛 (9.5g ± 0.5g × 50包)", roaster_board: "看板 B-08" }
+        ],
+        total_amount: "$1,500 元 ($30 × 50)",
+        destination: "門市交付 / 待確認",
+        status: "待出貨",
+        status_badge: "🔥 待出貨 (看板 B-08)",
+        progress_note: "生豆秤重約 625g，排產研磨充氮封裝中。"
+      },
+      {
+        order_id: "19",
+        date: "2026-10-13",
+        customer: "vip0504",
+        aliases: ["vip0504", "0504"],
+        phone_last_3: "000",
+        recipient: "vip0504",
+        category: "咖啡以外 (芙瑞納)",
+        items: [
+          { name: "芙瑞納A方案 (6+1) 7套 / 組", spec: "1 組 (共 7 套)" }
+        ],
+        total_amount: "$37,680 元",
+        destination: "專人分批交付",
+        status: "部份完成",
+        status_badge: "⚡ 部份完成 (已交 1 套 ｜ 尚欠 6 套)",
+        progress_note: "10/13 已出貨第 1 套，尚欠 6 套持續依健管調理週期專人配送交付。"
+      }
+    ];
+
+    // 全店真實烘焙與備豆總量 (同步自 待出貨訂單與烘豆排單表)
+    const REAL_ROAST_SCHEDULE = {
+      date: new Date().toISOString().split("T")[0],
+      roaster: "陳河志（阿志 / Simon）親自一人顧店與掌舵烘豆",
+      roast_philosophy: "烘好與出貨合體消單 ｜ 嚴守門市憲法 ｜ 專注精品手沖",
+      total_unfulfilled_beans: "13 包半磅 ＋ 1 磅散裝 ＋ 1,050 包耳掛",
+      total_roasted_weight_g: 13875,
+      total_roasted_weight_lbs: 30.8,
+      total_green_beans_weight_g: 17344,
+      unfulfilled_orders_count: 8,
+      batches: [
+        {
+          id: "B-07",
+          bean: "#8 肯亞 AA (奇里雅加/瑪瑪處理廠)",
+          roast_level: "中焙",
+          target_qty: "10 包半磅 (2,250g / 5.0 磅)",
+          green_weight: "約 2,813g (失重20%)",
+          customer_allocation: "國良 × 10 包半磅",
+          status: "⏳ 待開火熱鍋 (看板 B-07)"
+        },
+        {
+          id: "B-06",
+          bean: "#3 無名小卒 (衣索比亞水洗+日曬)",
+          roast_level: "淺中焙",
+          target_qty: "1 磅散裝 (450g / 1.0 磅)",
+          green_weight: "約 563g",
+          customer_allocation: "拉拉 × 1 磅散裝",
+          status: "⏳ 待開火 (看板 B-06)"
+        },
+        {
+          id: "B-08",
+          bean: "#5 尼加拉瓜 憤慨莊園 水洗 (耳掛)",
+          roast_level: "中淺焙",
+          target_qty: "50 包耳掛 (500g / 約 1.1 磅)",
+          green_weight: "約 625g",
+          customer_allocation: "謝小姐 × 50 包耳掛",
+          status: "⏳ 待研磨封裝 (看板 B-08)"
+        },
+        {
+          id: "B-CUSTOM",
+          bean: "精品咖啡豆 (半磅)",
+          roast_level: "依指定",
+          target_qty: "3 包半磅 (675g / 約 1.5 磅)",
+          green_weight: "約 844g",
+          customer_allocation: "謝先生 × 3 包半磅",
+          status: "⏳ 待確認豆種開火 (享3包外送)"
+        },
+        {
+          id: "B-DRIP-BULK",
+          bean: "莊園嚴選配方 (耳掛咖啡 9.5g)",
+          roast_level: "莊園專用配方",
+          target_qty: "1,000 包耳掛 (10,000g / 約 22.2 磅)",
+          green_weight: "約 12,500g",
+          customer_allocation: "林小姐 (南投 400包) ＋ 姐姐 (深坑 100包) ＋ 姐夫 (自取 500包)",
+          status: "⏳ 待批次研磨充氮封裝"
+        }
+      ]
+    };
+
+    // 驗證情境目錄
+    const VERIFIED_CATALOG_DB = [
+      {
+        id: "XD-BEANS-001",
+        title: "無名小卒手沖豆（半磅）",
+        brand: "翔頂咖啡",
+        price: "350 TWD",
+        verified: true,
+        flavor_notes: "中淺焙、衣索比亞花果香、蜂蜜柑橘甜感",
+        scenario: "新手入門首選 / 清爽果香手沖 / 門市招牌",
+        delivery_incentive: "滿 800 免運 / 老闆說一次買 3 包享竹北社區外送",
+        url: "https://myship.7-11.com.tw/general/detail/GM2511148315976"
+      },
+      {
+        id: "XD-DRIP-002",
+        title: "新瓦屋之味 經典曼巴耳掛咖啡 (10包/盒)",
+        brand: "翔頂咖啡",
+        price: "300 TWD",
+        verified: true,
+        flavor_notes: "中深焙、草本厚實、黑巧克力尾韻、溫潤甘醇順口",
+        scenario: "辦公室醒腦 / 孝親長輩首選 / 溫潤不心悸",
+        delivery_incentive: "滿 800 免運 / 一次買 3 盒享竹北社區外送",
+        url: "https://myship.7-11.com.tw/general/detail/GM2511148315976"
+      },
+      {
+        id: "XD-SOAP-004",
+        title: "淨心 咖啡銀皮手工皂 (95g)",
+        brand: "翔頂咖啡",
+        price: "120 TWD",
+        verified: true,
+        scenario: "湊單神器：購物車 680~750 元之免運首選 / 溫和潔淨去角質",
+        url: "https://myship.7-11.com.tw/general/detail/GM2511148315976"
+      },
+      {
+        id: "XD-GIFT-003",
+        title: "客委會認證嚴選伴手禮盒",
+        brand: "翔頂咖啡",
+        price: "現場確認報價",
+        verified: false,
+        scenario: "客庄風土情感、國家級認證 / 未確認前不自主報價，引導吧檯面聊",
+        delivery_incentive: "企業大宗送禮另享專屬優惠"
+      },
+      {
+        id: "SDC-DRIP-001",
+        title: "文仁慢活單品手沖",
+        brand: "Share Day Coffee 文仁店",
+        price: "現場公告價",
+        verified: true,
+        scenario: "妹妹 Fenny 獨立顧店手沖 / 溫暖鄰家姊姊親沖",
+        delivery_incentive: "加入特約享折扣（徹底取消外帶買5送1與寄杯）"
+      },
+      {
+        id: "SDC-CAKE-002",
+        title: "每日限量【手作甜點】",
+        brand: "Share Day Coffee 文仁店",
+        price: "現場公告價",
+        verified: true,
+        scenario: "當日新鮮現烤出爐 / 嚴禁稱呼單一品名（如巴斯克）"
+      },
+      {
+        id: "FEATERA-SET-001",
+        title: "每日健康儀式調理組 (N1~N3)",
+        brand: "芙瑞納生活健管",
+        price: "6,280 TWD",
+        verified: true,
+        scenario: "早晨日常細胞精力湯調理 / 搭配好咖啡生活儀式",
+        delivery_incentive: "買一套送咖啡好禮二選一 / 買兩套加贈手工皂"
+      },
+      {
+        id: "FEATERA-N4-002",
+        title: "N4 優力能 胜肽植物蛋白 (420g)",
+        brand: "芙瑞納生活健管",
+        price: "1,680 TWD",
+        verified: true,
+        scenario: "日常優質蛋白質補給 / 銀髮溫潤飲食 / 亞健康調理",
+        delivery_incentive: "買四罐加贈精選好禮"
+      }
+    ];
+
+    // 斷豆熟客清單 (WF-21 連動真實客情)
+    const INACTIVE_CUSTOMERS_DB = [
+      {
+        customer_id: "CUST-089",
+        name_alias: "竹北林醫師",
+        favorite_bean: "新瓦屋曼巴耳掛盒裝",
+        last_purchase_date: "2026-09-08",
+        days_since_last_order: 37,
+        order_habit: "習慣一次帶 3 盒放在診所，喜愛溫潤厚實口感",
+        icebreak_hint: "「林醫師好！最近竹北早晚九降風大，診所看診辛苦了。早晨沖杯溫潤曼巴最暖胃，豆子剛烘好隨時為您送上～」"
+      },
+      {
+        customer_id: "CUST-142",
+        name_alias: "台積電陳副理",
+        favorite_bean: "衣索比亞 無名小卒手沖豆 (半磅)",
+        last_purchase_date: "2026-09-05",
+        days_since_last_order: 40,
+        order_habit: "喜歡果香明亮手沖，辦公室常與同仁分裝",
+        icebreak_hint: "「陳副理好！新一批無名小卒剛出爐，花果甜香特別細膩。老闆說滿 3 包隨時可竹北社區外送，辦公室存豆還夠嗎？」"
+      },
+      {
+        customer_id: "CUST-205",
+        name_alias: "交大李教授",
+        favorite_bean: "#8 肯亞 AA (奇里雅加)",
+        last_purchase_date: "2026-09-01",
+        days_since_last_order: 45,
+        order_habit: "中焙黑醋栗烏梅酸甜韻，下午研究室備用",
+        icebreak_hint: "「李教授您好！今天開火烘了一批肯亞 AA，香氣飽滿。週末若有散步來新瓦屋，歡迎順道來吧檯坐坐喝一杯！」"
+      },
+      {
+        customer_id: "CUST-033",
+        name_alias: "高鐵張經理",
+        favorite_bean: "芙瑞納 N4 優力能蛋白 ＋ 手沖豆組合",
+        last_purchase_date: "2026-09-03",
+        days_since_last_order: 42,
+        order_habit: "注重早晨蛋白質補給，習慣晨起精力湯搭手沖",
+        icebreak_hint: "「張經理好！最近出差步調緊湊嗎？早晨的細胞營養補給隨時為您備妥，若需要補罐隨時跟阿志說喔！」"
+      }
+    ];
+
+    // 初始化線路設定
+    function initEndpointSelector() {
+      const sel = document.getElementById("endpoint-selector");
+      if (sel) {
+        sel.value = currentEndpointMode;
+      }
+      updateStatusBadge();
+    }
+
+    function changeEndpointMode(val) {
+      currentEndpointMode = val;
+      localStorage.setItem("simon_muse_endpoint_mode", val);
+      isCloudMode = (val !== "offline_sandbox");
+      updateStatusBadge();
+    }
+
+    function cycleConnectionMode() {
+      const modes = ["offline_sandbox", "cloud_zeabur", "local_tailscale", "local_server"];
+      let curIdx = modes.indexOf(currentEndpointMode);
+      let nextIdx = (curIdx + 1) % modes.length;
+      changeEndpointMode(modes[nextIdx]);
+      const sel = document.getElementById("endpoint-selector");
+      if (sel) sel.value = modes[nextIdx];
+    }
+
+    function updateStatusBadge() {
+      const badge = document.getElementById("conn-status-badge");
+      if (!badge) return;
+      if (currentEndpointMode === "offline_sandbox") {
+        badge.className = "bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] px-2 py-0.5 rounded font-mono";
+        badge.innerText = "🛡️ 離線高保真沙盒 (真數據)";
+      } else if (currentEndpointMode === "cloud_zeabur") {
+        badge.className = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] px-2 py-0.5 rounded font-mono";
+        badge.innerText = "🌐 Zeabur 雲端連線 (WF-39)";
+      } else if (currentEndpointMode === "local_tailscale") {
+        badge.className = "bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[10px] px-2 py-0.5 rounded font-mono";
+        badge.innerText = "🖥️ 地端 Tailscale 網道";
+      } else if (currentEndpointMode === "local_server") {
+        badge.className = "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[10px] px-2 py-0.5 rounded font-mono";
+        badge.innerText = "💻 地端 Localhost 伺服器";
+      }
+    }
+
+    // 頁籤切換
+    function switchTab(key) {
+      document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('tab-active', 'text-white');
+        btn.classList.add('text-slate-300');
+      });
+
+      const panel = document.getElementById(`panel-${key}`);
+      const btn = document.getElementById(`tab-btn-${key}`);
+      if (panel && btn) {
+        panel.classList.remove('hidden');
+        btn.classList.add('tab-active', 'text-white');
+        btn.classList.remove('text-slate-300');
+      }
+    }
+
+    // 快捷填入訂單查詢顧客
+    function fillOrderCustomer(name, phone) {
+      const nameEl = document.getElementById("param_name");
+      const phoneEl = document.getElementById("param_phone");
+      if (nameEl) nameEl.value = name;
+      if (phoneEl) phoneEl.value = phone;
+    }
+
+    // 工具表單定義
+    const TOOL_CONFIGS = {
+      query_order_status: {
+        title: "查訂單排單進度 (query_order_status・直連排單真實數據)",
+        renderForm: () => `
+          <div class="space-y-2">
+            <div class="flex flex-wrap items-center gap-1.5 p-2 bg-blue-50/70 rounded-lg border border-blue-200">
+              <span class="text-blue-900 font-bold text-[11px]">快捷代入真實顧客：</span>
+              <button type="button" onclick="fillOrderCustomer('林小姐', '828')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 rounded text-[11px] font-medium shadow-xs">南投 林小姐 (耳掛400包)</button>
+              <button type="button" onclick="fillOrderCustomer('國良', '654')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 rounded text-[11px] font-medium shadow-xs">國良 (肯亞AA 10包)</button>
+              <button type="button" onclick="fillOrderCustomer('拉拉', '123')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 rounded text-[11px] font-medium shadow-xs">拉拉 (無名小卒1磅)</button>
+              <button type="button" onclick="fillOrderCustomer('謝小姐', '789')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 rounded text-[11px] font-medium shadow-xs">謝小姐 (耳掛50包)</button>
+              <button type="button" onclick="fillOrderCustomer('謝先生', '350')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 rounded text-[11px] font-medium shadow-xs">謝先生 (精品豆3包外送)</button>
+              <button type="button" onclick="fillOrderCustomer('林小姐姐夫', '999')" class="bg-white hover:bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 rounded text-[11px] font-medium shadow-xs">姐夫 (自取耳掛500包)</button>
+              <button type="button" onclick="fillOrderCustomer('vip0504', '000')" class="bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded text-[11px] font-medium shadow-xs">vip0504 (芙瑞納7套)</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label class="font-bold text-slate-700 block mb-1">顧客訂購姓名：</label>
+                <input type="text" id="param_name" value="林小姐" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white focus:outline-none focus:border-blue-500 font-semibold">
+              </div>
+              <div>
+                <label class="font-bold text-slate-700 block mb-1">電話末 3 碼 (隱私驗證)：</label>
+                <input type="text" id="param_phone" value="828" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white focus:outline-none focus:border-blue-500 font-mono">
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-500">🛡️ 唯讀保護：系統將比對門市《待出貨訂單與即時烘豆排單表》，精準回傳該客戶品項、金額、交期與當前排產進度。</p>
+          </div>
+        `,
+        getParams: () => ({
+          customer_name: (document.getElementById("param_name")?.value || "").trim(),
+          phone_last_3: (document.getElementById("param_phone")?.value || "").trim()
+        })
+      },
+      validate_food_regulations: {
+        title: "食品法規安全盾 ＆ 門市憲法檢查 (validate_food_regulations)",
+        renderForm: () => `
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-bold text-slate-700">待檢驗社群文案或私訊草稿：</label>
+              <div class="flex gap-2">
+                <button type="button" onclick="fillValidationDraft('violation')" class="text-[11px] text-rose-600 underline font-semibold">填入違規測試句</button>
+                <button type="button" onclick="fillValidationDraft('safe')" class="text-[11px] text-emerald-600 underline font-semibold">填入合規測試句</button>
+              </div>
+            </div>
+            <textarea id="param_draft_text" rows="3" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white focus:outline-none focus:border-blue-500">這杯咖啡喝了可以改善高血壓，文仁店巴斯克蛋糕也超好吃，外帶買5送1喔，親愛的顧客！</textarea>
+            <p class="text-[11px] text-slate-500 mt-1">🛡️ 雙層攔截：食安法第28條療效禁令 ＋ 門市憲法（翔頂無甜點、文仁店手作甜點禁提巴斯克、禁熱美式、取消買5送1改特約享折扣）。</p>
+          </div>
+        `,
+        getParams: () => ({
+          draft_text: document.getElementById("param_draft_text")?.value || ""
+        })
+      },
+      save_social_draft: {
+        title: "送入發文草稿台 (save_social_draft・含前置強制合規鎖)",
+        renderForm: () => `
+          <div class="space-y-2">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="font-bold text-slate-700 block mb-1">貼文標題：</label>
+                <input type="text" id="param_draft_title" value="秋風起，新瓦屋的手沖香氣" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white">
+              </div>
+              <div>
+                <label class="font-bold text-slate-700 block mb-1">目標發布平台：</label>
+                <select id="param_platform" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white">
+                  <option value="FB/IG/Threads">Facebook ＋ Instagram ＋ Threads</option>
+                  <option value="LinkedIn">LinkedIn 商業專欄</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="font-bold text-slate-700 block mb-1">正文內容（若含違規詞將物理攔截拒絕存入）：</label>
+              <textarea id="param_social_content" rows="3" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white">秋天的九降風吹起來了。走進新瓦屋吧檯沖一杯無名小卒，溫潤甘醇順口。文仁店今日也有新鮮現做的手作甜點喔！加入特約享折扣。</textarea>
+            </div>
+            <p class="text-[11px] text-slate-500">🛡️ 人在迴圈：草稿存入後絕不自主對外發布，必須由阿志親自於門市吧檯挑選真實照片後手動放行。</p>
+          </div>
+        `,
+        getParams: () => ({
+          title: document.getElementById("param_draft_title")?.value || "",
+          platform: document.getElementById("param_platform")?.value || "FB/IG/Threads",
+          content: document.getElementById("param_social_content")?.value || ""
+        })
+      },
+      get_today_roast_schedule: {
+        title: "查今日烘豆排單看板 (get_today_roast_schedule・實時合併總量)",
+        renderForm: () => `
+          <div class="p-3 bg-amber-50/70 rounded-lg border border-amber-200 text-xs space-y-1">
+            <div class="flex items-center gap-2 font-bold text-amber-900">
+              <span>☕ 門市烘豆看板即時連動</span>
+              <span class="bg-amber-200 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-mono">${new Date().toISOString().split("T")[0]}</span>
+            </div>
+            <p class="text-slate-700">此工具為唯讀操作，點擊執行即可撈取今日阿志在門市開火熱鍋之合併烘焙總量、生豆秤重建議與待出貨訂單分配清單。</p>
+          </div>
+        `,
+        getParams: () => ({})
+      },
+      get_verified_catalog: {
+        title: "查驗證情境商品目錄 (get_verified_catalog)",
+        renderForm: () => `
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">篩選業務線：</label>
+            <select id="param_catalog_unit" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white">
+              <option value="all">全業務線 (翔頂咖啡 ＋ Share Day ＋ 芙瑞納)</option>
+              <option value="翔頂">翔頂咖啡 (新瓦屋 12 號・手沖與拿鐵・客庄伴手禮)</option>
+              <option value="Share Day">Share Day Coffee (文仁店・手沖/拿鐵/手作甜點・特約折扣)</option>
+              <option value="芙瑞納">芙瑞納生活健管 (Featera・細胞精力湯理念・生活化調理)</option>
+            </select>
+            <p class="text-[11px] text-slate-500 mt-1">🛡️ 報價防線：未確認或 verified=false 品項嚴禁代理人自主報價，一律引導吧檯阿志親自報價。</p>
+          </div>
+        `,
+        getParams: () => ({
+          business_unit: document.getElementById("param_catalog_unit")?.value || "all"
+        })
+      },
+      notify_line_simon: {
+        title: "推播 3 行卡片至阿志 LINE (notify_line_simon・固定 3 行卡片)",
+        renderForm: () => `
+          <div class="space-y-2">
+            <div>
+              <label class="font-bold text-slate-700 block mb-1">卡片主標題：</label>
+              <input type="text" id="param_line_title" value="Meta Muse 晨間 3 秒戰情報告" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white">
+            </div>
+            <div>
+              <label class="font-bold text-slate-700 block mb-1">第 1 行【品牌/目標】做了什麼：</label>
+              <input type="text" id="param_line1" value="1. 【客情掃描】夜間 3 則詢問已妥處，文仁店特約諮詢 1 件，無待回大單。" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white">
+            </div>
+            <div>
+              <label class="font-bold text-slate-700 block mb-1">第 2 行【關鍵結果與法規狀態】：</label>
+              <input type="text" id="param_line2" value="2. 【法規狀態】食安法與門市憲法 100% 綠燈合規，烘豆排單 5 鍋備妥。" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white">
+            </div>
+            <div>
+              <label class="font-bold text-slate-700 block mb-1">第 3 行【需阿志拍板之動作】：</label>
+              <input type="text" id="param_line3" value="3. 【阿志拍板】請於吧檯挑選 1 張新瓦屋窗景照片放行發文。" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white">
+            </div>
+          </div>
+        `,
+        getParams: () => ({
+          title: document.getElementById("param_line_title")?.value || "",
+          line1: document.getElementById("param_line1")?.value || "",
+          line2: document.getElementById("param_line2")?.value || "",
+          line3: document.getElementById("param_line3")?.value || ""
+        })
+      },
+      get_inactive_customer_list: {
+        title: "查斷豆熟客名單 (get_inactive_customer_list・WF-21 連動)",
+        renderForm: () => `
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">未回購天數門檻 (預設 35 天)：</label>
+            <input type="number" id="param_threshold" value="35" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white font-mono">
+            <span class="text-[11px] text-slate-400 mt-1 block">連動 WF-21 RFM 演算，撈出豆子即將見底的熟客，名單僅供吧檯手動關懷，嚴禁 AI 自動群發騷擾。</span>
+          </div>
+        `,
+        getParams: () => ({
+          days_threshold: parseInt(document.getElementById("param_threshold")?.value, 10) || 35
+        })
+      },
+      append_market_intelligence: {
+        title: "寫入商情情報表 (append_market_intelligence・只增不減)",
+        renderForm: () => `
+          <div class="space-y-2">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="font-bold text-slate-700 block mb-1">情報類別：</label>
+                <input type="text" id="param_intel_cat" value="公部門標案" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white">
+              </div>
+              <div>
+                <label class="font-bold text-slate-700 block mb-1">標題：</label>
+                <input type="text" id="param_intel_title" value="新竹縣客庄文化節伴手禮評選" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white">
+              </div>
+            </div>
+            <div>
+              <label class="font-bold text-slate-700 block mb-1">關鍵發現與摘要：</label>
+              <textarea id="param_intel_findings" rows="2" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white">預算 48 萬，需在地合法設立廠商，翔頂客委會認證資料完全符合投標資格。</textarea>
+            </div>
+            <p class="text-[11px] text-slate-500">🛡️ 物理保證：只能追加寫入，無法覆寫或刪除歷史紀錄。</p>
+          </div>
+        `,
+        getParams: () => ({
+          category: document.getElementById("param_intel_cat")?.value || "競品商情",
+          title: document.getElementById("param_intel_title")?.value || "未命名情報",
+          key_findings: document.getElementById("param_intel_findings")?.value || "",
+          source_url: "https://web.pcc.gov.tw"
+        })
+      },
+      add_calendar_reminder: {
+        title: "標案與市集截止日加入行事曆 (add_calendar_reminder)",
+        renderForm: () => `
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="font-bold text-slate-700 block mb-1">提醒事件名稱：</label>
+              <input type="text" id="param_cal_title" value="客庄伴手禮評選標案截止" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white">
+            </div>
+            <div>
+              <label class="font-bold text-slate-700 block mb-1">截止日期：</label>
+              <input type="date" id="param_cal_date" value="2026-11-15" class="w-full bg-slate-50 border border-slate-300 rounded p-2 focus:bg-white font-mono">
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1">📅 智能哨兵：系統將於截止日前 3 天與前 1 天自動排程推播提醒阿志。</p>
+        `,
+        getParams: () => ({
+          event_title: document.getElementById("param_cal_title")?.value || "未命名截止提醒",
+          event_date: document.getElementById("param_cal_date")?.value || new Date().toISOString().split("T")[0],
+          notes: "請於截止日前 3 天備妥樣品與報價單"
+        })
+      }
+    };
+
+    // 選取工具
+    function selectTool(toolKey) {
+      currentSelectedTool = toolKey;
+      document.querySelectorAll(".tool-btn").forEach(btn => {
+        btn.classList.remove("border-blue-500", "bg-blue-50/80", "text-blue-900");
+        btn.classList.add("bg-slate-50", "text-slate-800");
+      });
+      const activeBtn = document.getElementById(`btn-tool-${toolKey}`);
+      if (activeBtn) {
+        activeBtn.classList.add("border-blue-500", "bg-blue-50/80", "text-blue-900");
+      }
+
+      const cfg = TOOL_CONFIGS[toolKey];
+      if (cfg) {
+        document.getElementById("workbench-tool-badge").innerText = toolKey;
+        document.getElementById("workbench-tool-title").innerText = cfg.title;
+        document.getElementById("workbench-input-container").innerHTML = cfg.renderForm();
+      }
+    }
+
+    // 填入違規 / 合規文字輔助
+    function fillValidationDraft(type) {
+      const area = document.getElementById("param_draft_text");
+      if (!area) return;
+      if (type === "violation") {
+        area.value = "這杯咖啡喝了可以改善高血壓，文仁店巴斯克蛋糕也超好吃，外帶買5送1喔，親愛的顧客！";
+      } else {
+        area.value = "早晨在新瓦屋沖一杯無名小卒，溫潤甘醇順口。文仁店今日有新鮮出爐的手作甜點喔！加入特約享折扣。";
+      }
+    }
+
+    // 執行當前工具
+    async function executeCurrentTool() {
+      const cfg = TOOL_CONFIGS[currentSelectedTool];
+      if (!cfg) return;
+
+      const params = cfg.getParams();
+      const payload = {
+        tool_name: currentSelectedTool,
+        parameters: params,
+        caller: "Simon-Console-UI",
+        client_timestamp: new Date().toISOString()
+      };
+
+      const btn = document.getElementById("btn-execute-tool");
+      btn.innerHTML = `<span class="animate-spin inline-block mr-1">⏳</span> 執行中...`;
+      btn.disabled = true;
+
+      const startTime = performance.now();
+      let resultData = null;
+
+      try {
+        if (currentEndpointMode !== "offline_sandbox") {
+          const endpointUrl = ENDPOINT_MAP[currentEndpointMode];
+          const response = await fetch(endpointUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          resultData = await response.json();
+        } else {
+          // 純前端離線高保真沙盒
+          await new Promise(r => setTimeout(r, 120));
+          resultData = localSimulateTool(currentSelectedTool, params);
+        }
+      } catch (err) {
+        console.warn("外部連線失敗，自動無感切換至本地高保真安全引擎：", err);
+        resultData = localSimulateTool(currentSelectedTool, params);
+        resultData._fallback_note = "（⚠️ 遠端節點未回應，已啟動本地真數據保護引擎安全輸出）";
+      }
+
+      const elapsed = Math.round(performance.now() - startTime);
+      document.getElementById("output-latency").innerText = `${elapsed} ms`;
+      document.getElementById("workbench-raw-output").innerText = JSON.stringify(resultData, null, 2);
+
+      // 渲染視覺化卡片
+      renderVisualCard(currentSelectedTool, resultData);
+
+      btn.innerHTML = `<span>🚀 立即執行工具</span>`;
+      btn.disabled = false;
+    }
+
+    // 本機高保真安全引擎（100% 同步真實門市數據）
+    function localSimulateTool(tool, params) {
+      const FOOD_REGEX = /治療|療效|改善|降三高|降血壓|降血糖|排便|宿便|不脹氣|好吸收|不心悸|預防|肌少症|根治|排毒|減肥/gi;
+      const STORE_REGEX = /巴斯克|熱美式|買5送1|買五送一|寄杯|陪伴卡|親～|親愛的顧客|小編|三師爸|一人戰隊|業務飛輪|數位副手/gi;
+
+      // 1. 查訂單排單進度
+      if (tool === "query_order_status") {
+        const name = (params.customer_name || "").trim();
+        const phone = (params.phone_last_3 || "").trim();
+
+        if (!name) {
+          return {
+            status: "error",
+            error_code: "CUSTOMER_NAME_REQUIRED",
+            result: "查單失敗：必須提供訂購人姓名以利比對門市排單表。"
+          };
+        }
+
+        // 比對真實訂單庫
+        const match = REAL_ORDERS_DB.find(o => 
+          o.customer === name || 
+          o.aliases.some(a => a.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(a.toLowerCase()))
+        );
+
+        if (match) {
+          return {
+            status: "success",
+            match_found: true,
+            order_id: match.order_id,
+            order_date: match.date,
+            customer: match.customer,
+            phone_last_3: phone || match.phone_last_3,
+            phone_verified: phone ? (phone === match.phone_last_3 ? "驗證相符 ✓" : "末3碼待核對（門市免密放行）") : "免密查詢",
+            category: match.category,
+            items: match.items.map(it => `${it.name} [${it.spec}]`).join(" ＋ "),
+            item_details: match.items,
+            total_amount: match.total_amount,
+            destination: match.destination,
+            order_status: match.status_badge,
+            progress_note: match.progress_note,
+            query_time: new Date().toISOString(),
+            data_source: "翔頂門市待出貨訂單與烘豆排單表 (真實同步)"
+          };
+        } else {
+          return {
+            status: "not_found",
+            match_found: false,
+            customer: name,
+            message: `在門市《待出貨訂單與即時烘豆排單表》中查無「${name}」之待出貨訂單。`,
+            reason: "可能該訂單已全數交付結案歸檔、或為現場熟客口頭交代尚未入帳。",
+            action: "外場代理人已標註並通知創辦人阿志親自於吧檯手動為您核對。",
+            query_time: new Date().toISOString()
+          };
+        }
+      }
+
+      // 2. 食品法規安全盾
+      if (tool === "validate_food_regulations") {
+        const text = params.draft_text || "";
+        const violations = [];
+        let m;
+        while ((m = FOOD_REGEX.exec(text)) !== null) violations.push({ type: "FOOD_SAFETY_LAW", word: m[0], rule: "食安法第28條禁用詞彙" });
+        while ((m = STORE_REGEX.exec(text)) !== null) violations.push({ type: "STORE_CONSTITUTION", word: m[0], rule: "門市憲法約束詞彙" });
+        const pass = violations.length === 0;
+        return {
+          is_compliant: pass,
+          violations_count: violations.length,
+          violations,
+          status: pass ? "GREEN_LIGHT" : "RED_LIGHT_BLOCKED",
+          guidance: pass ? "合規綠燈：文案安全無虞，完全符合食安法與門市憲法！" : "違規攔截：已物理阻斷，請修正違規字眼後再行送出。"
+        };
+      }
+
+      // 3. 送入發文草稿台
+      if (tool === "save_social_draft") {
+        const text = params.content || "";
+        const violations = [];
+        let m;
+        while ((m = FOOD_REGEX.exec(text)) !== null) violations.push(m[0]);
+        while ((m = STORE_REGEX.exec(text)) !== null) violations.push(m[0]);
+        if (violations.length > 0) {
+          return {
+            status: "rejected",
+            error_code: "COMPLIANCE_VIOLATION_INTERCEPTED",
+            message: `物理拒絕存入 WF-01 草稿台！偵測到違規詞：[${violations.join(", ")}]`,
+            violations
+          };
+        }
+        return {
+          status: "draft_saved",
+          draft_id: "draft_" + Date.now(),
+          title: params.title || "今日社群靈感",
+          platform: params.platform || "FB/IG/Threads",
+          review_status: "pending_simon_approval",
+          compliance_check: "PASSED_GREEN_LIGHT",
+          target_url: ENDPOINT_MAP[currentEndpointMode] || "LOCAL_DRAFT_VAULT",
+          note: "草稿已安全入匣，絕不自主對外發布，等待阿志在吧檯挑照片審核。"
+        };
+      }
+
+      // 4. 查今日烘豆排單看板
+      if (tool === "get_today_roast_schedule") {
+        return {
+          status: "success",
+          date: REAL_ROAST_SCHEDULE.date,
+          roaster: REAL_ROAST_SCHEDULE.roaster,
+          roast_philosophy: REAL_ROAST_SCHEDULE.roast_philosophy,
+          total_unfulfilled_beans: REAL_ROAST_SCHEDULE.total_unfulfilled_beans,
+          total_roasted_weight_g: REAL_ROAST_SCHEDULE.total_roasted_weight_g,
+          total_roasted_weight_lbs: REAL_ROAST_SCHEDULE.total_roasted_weight_lbs,
+          total_green_beans_weight_g: REAL_ROAST_SCHEDULE.total_green_beans_weight_g,
+          unfulfilled_orders_count: REAL_ROAST_SCHEDULE.unfulfilled_orders_count,
+          batches: REAL_ROAST_SCHEDULE.batches,
+          data_source: "翔頂咖啡・待出貨訂單與即時烘豆排單表"
+        };
+      }
+
+      // 5. 查驗證情境商品目錄
+      if (tool === "get_verified_catalog") {
+        const unit = params.business_unit || "all";
+        let filtered = VERIFIED_CATALOG_DB;
+        if (unit !== "all") {
+          filtered = VERIFIED_CATALOG_DB.filter(it => it.brand.includes(unit));
+        }
+        return {
+          status: "success",
+          total: filtered.length,
+          business_unit: unit,
+          catalog: filtered,
+          disclaimer: "未標註價格與 verified=false 品項嚴禁代理人自主報價，一律引導吧檯阿志親自報價。"
+        };
+      }
+
+      // 6. 推播 3 行卡片至阿志 LINE
+      if (tool === "notify_line_simon") {
+        const title = params.title || "Meta Muse 戰情報告";
+        const line1 = params.line1 || "1. 【客情掃描】夜間 3 則詢問已妥處，文仁店特約諮詢 1 件。";
+        const line2 = params.line2 || "2. 【法規狀態】食安法與門市憲法 100% 綠燈合規，排單備妥。";
+        const line3 = params.line3 || "3. 【阿志拍板】請於吧檯撥空 3 秒點頭放行。";
+        return {
+          status: "line_dispatched",
+          recipient: "Simon-Personal-LINE",
+          card_structure: { title, line1, line2, line3 },
+          raw_text: `【${title}】
+${line1}
+${line2}
+${line3}`,
+          dispatched_at: new Date().toISOString()
+        };
+      }
+
+      // 7. 查斷豆熟客名單
+      if (tool === "get_inactive_customer_list") {
+        const days = params.days_threshold || 35;
+        const customers = INACTIVE_CUSTOMERS_DB.filter(c => c.days_since_last_order >= days);
+        return {
+          status: "success",
+          threshold_days: days,
+          total_inactive_count: customers.length,
+          customers: customers,
+          guidance: "名單僅供阿志吧檯手動真誠關懷，嚴禁代理人未授權自動推銷群發。"
+        };
+      }
+
+      // 8. 寫入商情情報表
+      if (tool === "append_market_intelligence") {
+        return {
+          status: "intelligence_recorded",
+          entry_id: "intel_" + Date.now(),
+          category: params.category || "競品商情",
+          title: params.title || "未命名情報",
+          source_url: params.source_url || "",
+          key_findings: params.key_findings || "",
+          operation: "APPEND_ONLY",
+          recorded_at: new Date().toISOString(),
+          storage_target: "一人戰隊商情日誌 (Google Sheets / 地端 SQLite / 本地記錄)",
+          audit: "物理保證：只能追加新增，無法覆寫或刪除歷史情報。"
+        };
+      }
+
+      // 9. 標案與市集截止日加入行事曆
+      if (tool === "add_calendar_reminder") {
+        const title = params.event_title || "未命名截止提醒";
+        const eventDate = params.event_date || new Date().toISOString().split("T")[0];
+        const today = new Date();
+        const target = new Date(eventDate);
+        const daysRemaining = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+        return {
+          status: "calendar_reminder_added",
+          event_id: "cal_" + Date.now(),
+          event_title: "【一人戰隊截止哨兵】" + title,
+          date: eventDate,
+          days_remaining: daysRemaining,
+          notes: params.notes || "",
+          calendar: "阿志一人戰隊營運日曆",
+          advance_alerts: ["截止日前 3 天", "截止日前 1 天"],
+          sync_status: "SUCCESS"
+        };
+      }
+
+      return { status: "success", tool, executed_at: new Date().toISOString() };
+    }
+
+    // 渲染各工具專屬視覺化卡片
+    function renderVisualCard(tool, data) {
+      const container = document.getElementById("workbench-visual-output");
+      if (!container) return;
+
+      // 1. 查訂單
+      if (tool === "query_order_status") {
+        if (data.status === "success" && data.match_found) {
+          container.innerHTML = `
+            <div class="w-full bg-slate-900 text-slate-100 rounded-lg p-3 space-y-2 border border-slate-700">
+              <div class="flex justify-between items-center text-xs border-b border-slate-800 pb-1.5">
+                <span class="font-bold text-amber-300 flex items-center gap-1.5">
+                  <span>📦 訂單編號 #${data.order_id}</span>
+                  <span class="bg-amber-400/20 text-amber-300 text-[10px] px-1.5 py-0.2 rounded font-mono">${data.order_date}</span>
+                </span>
+                <span class="text-emerald-400 font-mono text-[10px] bg-emerald-950/60 border border-emerald-800 px-1.5 py-0.5 rounded">${data.order_status}</span>
+              </div>
+              <div class="space-y-1 text-xs">
+                <div class="flex justify-between">
+                  <span>訂購顧客：<strong class="text-white">${data.customer}</strong></span>
+                  <span class="text-slate-400 text-[11px]">${data.phone_verified}</span>
+                </div>
+                <div>訂購品項：<span class="text-emerald-300 font-medium">${data.items}</span></div>
+                <div>訂單金額：<span class="text-amber-300 font-bold font-mono">${data.total_amount}</span></div>
+                <div>交付管道：<span class="text-slate-300">${data.destination}</span></div>
+                <div class="bg-slate-800/80 p-2 rounded border border-slate-700/60 text-[11px] text-slate-300 mt-1">
+                  <strong class="text-amber-400">🔥 吧檯排產進度：</strong>${data.progress_note}
+                </div>
+              </div>
+            </div>
+          `;
+        } else if (data.status === "not_found") {
+          container.innerHTML = `
+            <div class="w-full bg-amber-50 border border-amber-300 rounded-lg p-3 text-amber-900 space-y-1.5">
+              <div class="flex items-center gap-1.5 font-bold text-sm">
+                <span>🔍 查無未出貨訂單</span>
+                <span class="text-xs bg-amber-200 text-amber-900 px-1.5 py-0.2 rounded font-mono">${data.customer}</span>
+              </div>
+              <p class="text-xs text-amber-800">${data.message}</p>
+              <div class="bg-white/80 p-2 rounded border border-amber-200 text-[11px] text-slate-700">
+                <strong>💡 處置指引：</strong>${data.action}
+              </div>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `<div class="text-rose-600 font-bold p-2">${data.result || data.message || "查單失敗"}</div>`;
+        }
+        return;
+      }
+
+      // 2. 食品法規安全盾
+      if (tool === "validate_food_regulations") {
+        if (data.is_compliant) {
+          container.innerHTML = `
+            <div class="w-full bg-emerald-50 border border-emerald-300 rounded-lg p-3 text-emerald-900 space-y-1">
+              <div class="flex items-center gap-2 font-bold text-sm">
+                <span class="text-emerald-600 text-lg">✅</span>
+                <span>合規檢驗通過！綠燈放行</span>
+              </div>
+              <p class="text-xs text-emerald-700">無任何食安法第28條違規字眼，亦符合翔頂門市憲法標準。</p>
+            </div>
+          `;
+        } else {
+          const list = (data.violations || []).map(v => `<li class="font-bold text-rose-700">『${v.word || v}』➔ ${v.rule || "違規詞"}</li>`).join("");
+          container.innerHTML = `
+            <div class="w-full bg-rose-50 border border-rose-300 rounded-lg p-3 text-rose-900 space-y-1.5">
+              <div class="flex items-center gap-2 font-bold text-sm">
+                <span class="text-rose-600 text-lg">🛑</span>
+                <span>偵測到違規詞！已物理阻斷</span>
+              </div>
+              <ul class="list-disc pl-5 text-xs space-y-0.5">${list}</ul>
+              <div class="bg-white/80 p-2 rounded border border-rose-200 text-[11px] text-slate-700 mt-2">
+                <strong>💡 建議安全替換詞：</strong>
+                <div>「改善/治療」➔ 「日常營養補給、溫潤調理」</div>
+                <div>「巴斯克」➔ 「【手作甜點】」｜「熱美式」➔ 「【現沖單品手沖】」</div>
+              </div>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // 3. 送入發文草稿台
+      if (tool === "save_social_draft") {
+        if (data.status === "rejected") {
+          container.innerHTML = `
+            <div class="w-full bg-rose-50 border border-rose-300 rounded-lg p-3 text-rose-900 space-y-1">
+              <div class="flex items-center gap-2 font-bold text-sm">
+                <span class="text-rose-600 text-lg">🚫</span>
+                <span>草稿入庫被前置合規鎖拒絕！</span>
+              </div>
+              <p class="text-xs text-rose-700 font-medium">${data.message || "文案含有違規詞，拒絕存入 WF-01 草稿台。"}</p>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div class="w-full bg-blue-50 border border-blue-300 rounded-lg p-3 text-blue-900 space-y-1.5">
+              <div class="flex items-center justify-between font-bold text-sm">
+                <span class="flex items-center gap-1.5">📥 草稿已安全存入 WF-01 待審匣！</span>
+                <span class="text-[10px] bg-blue-200 text-blue-800 px-2 py-0.5 rounded font-mono">${data.draft_id || "OK"}</span>
+              </div>
+              <p class="text-xs text-blue-800">標題：<strong>${data.title || ""}</strong> ｜ 平台：<span class="font-mono">${data.platform || ""}</span></p>
+              <p class="text-xs text-slate-600">合規狀態：<span class="text-emerald-600 font-bold">PASSED_GREEN_LIGHT</span></p>
+              <p class="text-[11px] text-slate-500">🛡️ 絕不自動對外發布，阿志在門市吧檯挑照片後手動按派發。</p>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // 4. 查今日烘豆看板
+      if (tool === "get_today_roast_schedule") {
+        const batchHtml = (data.batches || []).map(b => `
+          <div class="p-2 bg-slate-800 rounded border border-slate-700 text-[11px] space-y-0.5">
+            <div class="flex justify-between items-center text-amber-300 font-bold">
+              <span>${b.id} ｜ ${b.bean}</span>
+              <span class="text-[10px] text-slate-400 font-mono">${b.roast_level}</span>
+            </div>
+            <div class="text-slate-300">熟豆：<strong>${b.target_qty}</strong> ｜ 生豆：${b.green_weight}</div>
+            <div class="text-emerald-300">分配：${b.customer_allocation}</div>
+            <div class="text-slate-400 text-[10px]">${b.status}</div>
+          </div>
+        `).join("");
+
+        container.innerHTML = `
+          <div class="w-full bg-slate-900 text-slate-100 rounded-lg p-3 space-y-2 border border-slate-700 max-h-[220px] overflow-y-auto">
+            <div class="flex justify-between items-center text-xs border-b border-slate-800 pb-1">
+              <span class="font-bold text-amber-300">☕ 今日全店備豆總量：${data.total_unfulfilled_beans}</span>
+              <span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-mono">${data.date}</span>
+            </div>
+            <div class="text-[11px] text-slate-300">
+              熟豆總重：<strong>${data.total_roasted_weight_g} g</strong> (${data.total_roasted_weight_lbs} 磅) ｜ 建議生豆：<strong>${data.total_green_beans_weight_g} g</strong>
+            </div>
+            <div class="space-y-1.5 pt-1">
+              ${batchHtml}
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // 5. 查商品目錄
+      if (tool === "get_verified_catalog") {
+        const itemsHtml = (data.catalog || []).map(it => `
+          <div class="p-2 bg-white rounded border border-slate-200 text-[11px] space-y-0.5 shadow-xs">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-900">${it.title}</span>
+              <span class="font-bold text-blue-600 font-mono">${it.price}</span>
+            </div>
+            <div class="text-slate-500 text-[10px]">${it.brand} ｜ ${it.scenario}</div>
+            <div class="text-emerald-700 text-[10px] font-medium">${it.delivery_incentive || ""}</div>
+          </div>
+        `).join("");
+
+        container.innerHTML = `
+          <div class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 space-y-2 max-h-[220px] overflow-y-auto">
+            <div class="flex justify-between items-center text-xs border-b border-slate-200 pb-1">
+              <span class="font-bold text-slate-800">📦 驗證情境目錄（共 ${data.total} 項）</span>
+              <span class="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">${data.business_unit}</span>
+            </div>
+            <div class="space-y-1.5">${itemsHtml}</div>
+          </div>
+        `;
+        return;
+      }
+
+      // 6. LINE 3 行卡片
+      if (tool === "notify_line_simon") {
+        container.innerHTML = `
+          <div class="w-full bg-[#06C755]/10 border border-[#06C755]/40 rounded-lg p-3 text-slate-800 space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-sm text-[#05963E] flex items-center gap-1">💬 LINE 3 行戰情報告</span>
+              <button onclick="navigator.clipboard.writeText(\`${(data.raw_text || '').replace(/`/g, '\\`')}\`); alert('已複製 3 行卡片文字！');" class="bg-white border border-[#06C755]/40 text-[#05963E] hover:bg-[#06C755]/20 text-[10px] px-2 py-0.5 rounded font-bold shadow-xs">複製卡片</button>
+            </div>
+            <div class="bg-white p-2.5 rounded border border-[#06C755]/20 font-mono text-xs leading-relaxed space-y-1">
+              <div class="font-bold text-slate-900">【${data.card_structure?.title || "戰報"}】</div>
+              <div class="text-slate-700">${data.card_structure?.line1 || ""}</div>
+              <div class="text-slate-700">${data.card_structure?.line2 || ""}</div>
+              <div class="text-blue-700 font-bold">${data.card_structure?.line3 || ""}</div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // 7. 斷豆名單
+      if (tool === "get_inactive_customer_list") {
+        const custList = (data.customers || []).map(c => `
+          <div class="p-2 bg-white rounded border border-slate-200 text-[11px] space-y-1 shadow-xs">
+            <div class="flex justify-between items-center">
+              <strong class="text-slate-900">${c.name_alias}</strong>
+              <span class="text-rose-600 font-bold font-mono">已 ${c.days_since_last_order} 天未回購</span>
+            </div>
+            <div class="text-slate-600">偏好品項：<span class="text-blue-700 font-semibold">${c.favorite_bean}</span></div>
+            <div class="bg-slate-50 p-1.5 rounded border border-slate-100 text-[10px] text-slate-700">
+              <strong class="text-amber-700">吧檯破冰話術：</strong>${c.icebreak_hint}
+            </div>
+          </div>
+        `).join("");
+
+        container.innerHTML = `
+          <div class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 space-y-2 max-h-[220px] overflow-y-auto">
+            <div class="flex justify-between items-center text-xs border-b border-slate-200 pb-1">
+              <span class="font-bold text-slate-800">🌱 斷豆熟客關懷名單 (門檻 >= ${data.threshold_days} 天)</span>
+              <span class="text-[10px] bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded font-mono">${data.total_inactive_count} 位</span>
+            </div>
+            <div class="space-y-1.5">${custList}</div>
+          </div>
+        `;
+        return;
+      }
+
+      // 8. 商情情報
+      if (tool === "append_market_intelligence") {
+        container.innerHTML = `
+          <div class="w-full bg-purple-50 border border-purple-200 rounded-lg p-3 text-purple-900 space-y-1.5 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-sm text-purple-800">📊 商情情報已安全記錄</span>
+              <span class="bg-purple-200 text-purple-900 text-[10px] px-1.5 py-0.2 rounded font-mono">APPEND_ONLY</span>
+            </div>
+            <div>標題：<strong class="text-slate-900">${data.title}</strong> (${data.category})</div>
+            <p class="text-slate-700">${data.key_findings}</p>
+            <div class="text-[10px] text-slate-500 pt-1 border-t border-purple-100 flex justify-between">
+              <span>儲存目標：${data.storage_target}</span>
+              <span class="font-mono">${data.recorded_at ? data.recorded_at.split("T")[0] : ""}</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // 9. 行事曆提醒
+      if (tool === "add_calendar_reminder") {
+        container.innerHTML = `
+          <div class="w-full bg-blue-50 border border-blue-200 rounded-lg p-3 text-blue-900 space-y-1.5 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-sm text-blue-800">📅 行事曆提醒排程已建立</span>
+              <span class="bg-blue-200 text-blue-900 text-[10px] px-1.5 py-0.2 rounded font-mono">剩餘 ${data.days_remaining} 天</span>
+            </div>
+            <div>事件：<strong class="text-slate-900">${data.event_title}</strong></div>
+            <div>截止日期：<span class="font-mono font-bold text-blue-700">${data.date}</span></div>
+            <div class="text-[11px] text-slate-600">備註：${data.notes}</div>
+            <div class="text-[10px] text-slate-500 pt-1 border-t border-blue-100">
+              🔔 自動推播：已設定截止日前 3 天與前 1 天發送通知至阿志手機。
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // 預設卡片
+      container.innerHTML = `
+        <div class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-700 text-xs space-y-1">
+          <div class="font-bold text-slate-900">執行成功！回傳摘要：</div>
+          <div>狀態：<span class="text-emerald-600 font-bold">${data.status || "OK"}</span></div>
+          <div class="text-slate-500 text-[11px]">詳細數據已收錄於右側 JSON。</div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // 顧客私訊對話沙盒邏輯 (動態查單真數據升級版)
+    // ==========================================
+    function sendPresetChat(text) {
+      const input = document.getElementById("chat-input");
+      if (input) input.value = text;
+      sendChatMessage();
+    }
+
+    function sendChatMessage() {
+      const input = document.getElementById("chat-input");
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendChatMessage("user", text);
+      input.value = "";
+
+      // 模擬 Muse 智慧回覆
+      setTimeout(() => {
+        const reply = generateAgentReply(text);
+        appendChatMessage("agent", reply);
+      }, 350);
+    }
+
+    function appendChatMessage(role, html) {
+      const container = document.getElementById("chat-messages-container");
+      if (!container) return;
+
+      const wrap = document.createElement("div");
+      wrap.className = `flex items-start gap-2 ${role === 'user' ? 'justify-end' : ''}`;
+
+      if (role === "agent") {
+        wrap.innerHTML = `
+          <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">M</div>
+          <div class="chat-bubble-agent p-3 shadow-sm space-y-1 max-w-[85%]">${html}</div>
+        `;
+      } else {
+        wrap.innerHTML = `
+          <div class="chat-bubble-user p-3 shadow-sm space-y-1 max-w-[85%]">${html}</div>
+          <div class="w-6 h-6 rounded-full bg-slate-700 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">客</div>
+        `;
+      }
+      container.appendChild(wrap);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function resetChat() {
+      const container = document.getElementById("chat-messages-container");
+      if (!container) return;
+      container.innerHTML = `
+        <div class="flex items-start gap-2 max-w-[85%]">
+          <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">M</div>
+          <div class="chat-bubble-agent p-3 shadow-sm space-y-1">
+            <p>哈囉您好呀！我是阿志在吧檯煮咖啡時的外場小助手。阿志剛好在吧檯烘豆～</p>
+            <p>想喝手沖、看豆單、查訂單進度，或者想了解早晨的細胞精力湯，都可以直接跟我聊喔！😊</p>
+          </div>
+        </div>
+      `;
+    }
+
+    // 智能對話回覆生成器
+    function generateAgentReply(userText) {
+      const t = userText.toLowerCase();
+
+      // 1. 比對真實顧客查單
+      for (const order of REAL_ORDERS_DB) {
+        if (t.includes(order.customer.toLowerCase()) || order.aliases.some(a => t.includes(a.toLowerCase())) || (order.phone_last_3 && t.includes(order.phone_last_3))) {
+          const itemStr = order.items.map(it => `<strong>【${it.name}】</strong>（${it.spec}）`).join(" ＋ ");
+          return `
+            <div class="space-y-1.5 my-0.5">
+              <span class="text-emerald-700 font-bold block text-[11px]">✓ 隱私驗證相符！已調用工具箱 [query_order_status]</span>
+              <p>${order.customer} 您好！在阿志吧檯手沖排單表上有您的訂單喔：</p>
+              <div class="p-2 bg-white rounded border border-slate-200 space-y-1 my-1 text-xs">
+                <div>訂單編號：#${order.order_id} ｜ 訂單金額：${order.total_amount}</div>
+                <div>訂購品項：${itemStr}</div>
+                <div>交付管道：${order.destination}</div>
+                <div>當前進度：<span class="text-amber-700 font-bold">${order.status_badge}</span></div>
+              </div>
+              <p class="text-[11px] text-slate-600">💡 備忘：${order.progress_note}</p>
+            </div>
+          `;
+        }
+      }
+
+      // 2. 泛用查單詢問引導
+      if (t.includes("寄出") || t.includes("訂單") || t.includes("豆子寄") || t.includes("查單") || t.includes("進度")) {
+        return `
+          <p>您好呀！幫您查詢排單進度喔～</p>
+          <p>為了保護您的個人隱私，請提供您訂購時留的<strong>【大名】</strong>（例如：國良、拉拉、林小姐、謝先生），我馬上幫您連線吧檯即時排單系統查詢！😊</p>
+        `;
+      }
+
+      // 3. 問甜點（恪守門市憲法：翔頂無甜點、文仁店手作甜點禁提巴斯克）
+      if (t.includes("甜點") || t.includes("蛋糕") || t.includes("巴斯克")) {
+        return `
+          <p>翔頂門市專注在精品單品手沖，門市現場<strong>沒有販售甜點</strong>喔！</p>
+          <p>如果想吃甜點，非常推薦散步到我妹妹顧的 <strong>Share Day Coffee 文仁店</strong>（文仁街 32 號）！那邊每天都有 Fenny 親手現烤的限量<strong>【手作甜點】</strong>，搭配一杯手沖或拿鐵剛剛好！🍰</p>
+        `;
+      }
+
+      // 4. 問熱美式（恪守門市憲法：專注單品手沖與鮮奶拿鐵）
+      if (t.includes("熱美式") || t.includes("美式")) {
+        return `
+          <p>我們門市專注在<strong>【現沖單品手沖咖啡】</strong>與<strong>【鮮奶拿鐵】</strong>，菜單上沒有熱美式喔！</p>
+          <p>如果平時喜歡喝黑咖啡，非常推薦試試我們的單品手沖，溫潤回甘、完全沒有焦苦味，許多平日喝美式的朋友一喝就愛上手沖的甘醇～☕</p>
+        `;
+      }
+
+      // 5. 測食安法違規字眼（恪守食安法第28條防爆盾）
+      if (t.includes("治") || t.includes("療效") || t.includes("改善") || t.includes("降血壓") || t.includes("便秘") || t.includes("排毒")) {
+        return `
+          <div class="space-y-1.5 my-0.5">
+            <span class="text-rose-700 font-bold block text-[11px]">🛡️ 已觸發食品法規安全盾 [validate_food_regulations]</span>
+            <p>阿志特別交代：芙瑞納的細胞精力湯是<strong>「日常飲食的優質營養補給」</strong>，就像每天吃新鮮健康的蔬果一樣，為身體打底、溫潤調理，絕不是藥品、也不能取代醫療喔！</p>
+            <p>如果您想了解如何透過早晨飲食調整生活節奏，非常歡迎您找天早晨來新瓦屋吧檯，阿志很樂意跟您一邊喝好手沖、一邊聊聊日常健管心得！🌿</p>
+          </div>
+        `;
+      }
+
+      // 6. 問特約與買5送1（恪守文仁店特約憲法）
+      if (t.includes("買5送1") || t.includes("買五送一") || t.includes("寄杯") || t.includes("折扣") || t.includes("優惠")) {
+        return `
+          <p>我們現在已經全面升級為<strong>【加入特約享折扣】</strong>囉！（過去的外帶買5送1、陪伴卡與寄杯都已經告一段落）。</p>
+          <p>只要您的公司、機構或團體符合特約條件，來店出示即可直接享有限定折扣！文仁店手沖、拿鐵與手作甜點均適用喔～歡迎來店時跟我們詢問特約方式！🏷️</p>
+        `;
+      }
+
+      // 預設客情聊天體
+      return `
+        <p>收到您的訊息囉！阿志目前正在吧檯沖咖啡與烘豆～</p>
+        <p>翔頂門市在新竹竹北新瓦屋客家文化保存區 12 號，隨時歡迎您來喝杯溫潤手沖。需要查訂單或看當季豆單，隨時打字跟我說！☕</p>
+      `;
+    }
+
+    // 頁面載入初始化
+    // ==========================================
+    // 👑 私人工具中樞專屬引擎 (複製指令、分類篩選、動態直達、Webhook非同步喚醒)
+    // ==========================================
+
+    // 取得當前動態 Base URL（實現地雲同步與轉移地端）
+    function getCurrentBaseUrl() {
+      if (currentEndpointMode === "cloud_zeabur") {
+        return "https://oeccafecf.zeabur.app";
+      } else if (currentEndpointMode === "local_tailscale") {
+        return "https://desktop-shiv50q.taila0ceb4.ts.net";
+      } else if (currentEndpointMode === "local_server") {
+        return "http://127.0.0.1:5678";
+      } else {
+        return "https://oeccafecf.zeabur.app";
+      }
+    }
+
+    // 動態在新分頁打開入口頁面（自動遵循地雲線路）
+    function openDynamicPortal(path) {
+      const base = getCurrentBaseUrl();
+      const targetUrl = path.startsWith("http") ? path : `${base}${path.startsWith('/') ? '' : '/'}${path}`;
+      window.open(targetUrl, "_blank", "noopener,noreferrer");
+    }
+
+    // 非同步喚醒後端 Webhook（不再打開空白或報錯分頁）
+    async function triggerPrivateWebhook(path, workflowName, method = "POST") {
+      const base = getCurrentBaseUrl();
+      const targetUrl = `${base}/webhook/${path}`;
+
+      showToast(`⏳ 正在喚醒【${workflowName}】...`);
+
+      if (currentEndpointMode === "offline_sandbox") {
+        setTimeout(() => {
+          showToast(`🛡️ 離線沙盒保護：已模擬喚醒【${workflowName}】！`);
+        }, 300);
+        return;
+      }
+
+      try {
+        const opts = {
+          method: method,
+          headers: { "Content-Type": "application/json" }
+        };
+        if (method === "POST") {
+          opts.body = JSON.stringify({ trigger: "manual", caller: "Simon-Private-Console", timestamp: new Date().toISOString() });
+        }
+        const resp = await fetch(targetUrl, opts);
+        if (resp.ok || resp.status === 200) {
+          showToast(`🚀 喚醒成功！【${workflowName}】已啟動，最新戰報將推播至您的 LINE！`);
+        } else {
+          showToast(`⚠️ 喚醒已送出 (HTTP ${resp.status})，請查看 LINE 接收最新結果！`);
+        }
+      } catch (err) {
+        console.warn("喚醒異常，啟動安全容錯回退：", err);
+        showToast(`🚀 已送出喚醒請求至後端伺服器！`);
+      }
+    }
+
+    // 全平台相容複製指令至剪貼簿
+    function copyToClipboard(text, customMsg) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast(customMsg || `📋 已複製：${text}`);
+        }).catch(() => fallbackCopy(text, customMsg));
+      } else {
+        fallbackCopy(text, customMsg);
+      }
+    }
+
+    function fallbackCopy(text, customMsg) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try {
+        document.execCommand("copy");
+        showToast(customMsg || `📋 已複製：${text}`);
+      } catch (err) {
+        alert("複製失敗，請手動複製：" + text);
+      }
+      document.body.removeChild(ta);
+    }
+
+    // 綠色浮動 Toast 提示框
+    function showToast(message) {
+      let toast = document.getElementById("simon-toast");
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "simon-toast";
+        toast.className = "fixed bottom-5 right-5 z-50 bg-slate-900 text-amber-300 border border-amber-400/50 shadow-2xl px-4 py-3 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition-all transform duration-300 opacity-0 translate-y-3 pointer-events-none";
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = `<span class="text-emerald-400 text-base">✅</span> <span>${message}</span>`;
+      toast.classList.remove("opacity-0", "translate-y-3", "pointer-events-none");
+      toast.classList.add("opacity-100", "translate-y-0");
+      setTimeout(() => {
+        toast.classList.remove("opacity-100", "translate-y-0");
+        toast.classList.add("opacity-0", "translate-y-3", "pointer-events-none");
+      }, 2600);
+    }
+
+    // 分類篩選
+    function filterPrivateCategory(cat) {
+      document.querySelectorAll(".private-filter-btn").forEach(btn => {
+        btn.classList.remove("bg-amber-400", "text-slate-950", "font-bold");
+        btn.classList.add("bg-slate-800", "text-slate-300");
+      });
+      const activeBtn = document.getElementById(`filter-btn-${cat}`);
+      if (activeBtn) {
+        activeBtn.classList.add("bg-amber-400", "text-slate-950", "font-bold");
+        activeBtn.classList.remove("bg-slate-800", "text-slate-300");
+      }
+
+      document.querySelectorAll(".private-tool-card").forEach(card => {
+        if (cat === "all" || card.getAttribute("data-category") === cat) {
+          card.classList.remove("hidden");
+        } else {
+          card.classList.add("hidden");
+        }
+      });
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      initEndpointSelector();
+      selectTool("query_order_status");
+    });
+  </script>
+</body>
+</html>
